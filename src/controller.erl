@@ -136,7 +136,7 @@ handle_call(Request, From, State) ->
 %%          {noreply, State, Timeout} |
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% -------------------------------------------------------------------
-handle_cast({status_interval,HostsStatus,ClusterStatus}, State) ->
+handle_cast({status_interval,_HostsStatus,_ClusterStatus}, State) ->
     NewState=State,
     spawn(fun()->controller_status_interval() end), 
    {noreply, NewState};
