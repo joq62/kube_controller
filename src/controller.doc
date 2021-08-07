@@ -1,0 +1,17 @@
+﻿Manage pods within the cluster 
+Start and stop pods
+heartbeat pods and restarts if not working
+
+input 
+all pods
+deployment.spec
+[{clusterId,pod_spc}]
+
+Wanted state: wanted pods are running
+running: present in application:which_applications() & application:ping()→pong
+compare with all specs 
+hur gör man med erlang relaterade appar
+
+action;
+stop and undload pod
+start_load pod
