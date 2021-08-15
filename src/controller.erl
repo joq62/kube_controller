@@ -24,12 +24,13 @@
 %% Key Data structures
 %% 
 %% --------------------------------------------------------------------
--record(state, {}).
+-record(state, {running_pods,
+		missing_pods}).
 
 %% --------------------------------------------------------------------
 %% Definitions 
 %% --------------------------------------------------------------------
--define(ControllerStatusInterval,1*10*1000).
+-define(ControllerStatusInterval,20*1000).
 %% --------------------------------------------------------------------
 %% Function: available_hosts()
 %% Description: Based on hosts.config file checks which hosts are avaible
@@ -42,7 +43,7 @@
 
 % OaM related
 -export([
-	 status_interval/2,
+	 status_interval/1,
 	 boot/0,
 	 ping/0
 	]).
@@ -72,8 +73,8 @@ stop()-> gen_server:call(?MODULE, {stop},infinity).
 
 
 %%---------------------------------------------------------------
-status_interval(HostsStatus,ClusterStatus)->
-  gen_server:cast(?MODULE,{status_interval,HostsStatus,ClusterStatus}).
+status_interval(PodsStatus)->
+  gen_server:cast(?MODULE,{status_interval,PodsStatus}).
 
 
 %%---------------------------------------------------------------
@@ -100,12 +101,28 @@ ping()->
 %
 %% --------------------------------------------------------------------
 init([]) ->
-     ?PrintLog(log,"Starting ",[?FUNCTION_NAME,?MODULE,?LINE]),
-    % 1. Start iaas for this cluster
-    % 2. Start etcd (mnesia)
-    % 3. Start controller 
-    ?PrintLog(log,"Successful starting of server ",[?FUNCTION_NAME,?MODULE,?LINE]),
-   {ok, #state{}}.
+     
+   ?PrintLog(log,"1/6 Start ",[?FUNCTION_NAME,?MODULE,?LINE]),
+    ?PrintLog(log,"2/6 Check pods ",[?FUNCTION_NAME,?MODULE,?LINE]),
+    case rpc:call(node(),controller_lib,status_all_pods,[],10*1000) of
+	{ok,Running,Missing}->
+	    RunningPods=Running,
+	    MissingPods=Missing;
+	_->
+	    RunningPods=[],
+	    MissingPods=[]
+    end,
+   
+    ?PrintLog(log,"3/6 RunningPods ",[RunningPods,?FUNCTION_NAME,?MODULE,?LINE]),
+    ?PrintLog(log,"4/6 MissingPods ",[MissingPods,?FUNCTION_NAME,?MODULE,?LINE]),
+
+   ?PrintLog(log,"5/6 Start controller_status_interval() ",[?FUNCTION_NAME,?MODULE,?LINE]),   
+    spawn(fun()->controller_status_interval() end),    
+
+    ?PrintLog(log,"6/6 Successful starting of server",[?MODULE]),
+    {ok, #state{running_pods=RunningPods,missing_pods=MissingPods
+	       }
+    }.
     
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -136,10 +153,18 @@ handle_call(Request, From, State) ->
 %%          {noreply, State, Timeout} |
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% -------------------------------------------------------------------
-handle_cast({status_interval,_HostsStatus,_ClusterStatus}, State) ->
-    NewState=State,
+handle_cast({status_interval,StriveResult}, State) ->
+    case  StriveResult of
+	{RunningPods,MissingPods}->
+	    ?PrintLog(log," RunningPods ",[RunningPods,?FUNCTION_NAME,?MODULE,?LINE]),
+	    ?PrintLog(log," MissingPods ",[MissingPods,?FUNCTION_NAME,?MODULE,?LINE]),
+	    NewState=State#state{running_pods=RunningPods,missing_pods=MissingPods};
+	Err->
+	    ?PrintLog(ticket," Error ",[Err,?FUNCTION_NAME,?MODULE,?LINE]),
+	    NewState=State
+    end,
     spawn(fun()->controller_status_interval() end), 
-   {noreply, NewState};
+    {noreply, NewState};
 
 handle_cast(Msg, State) ->
     io:format("unmatched match cast ~p~n",[{?MODULE,?LINE,Msg}]),
@@ -193,22 +218,21 @@ code_change(_OldVsn, State, _Extra) ->
 %% Returns: non
 %% --------------------------------------------------------------------
 controller_status_interval()->
-  %  io:format("Start ~p~n",[{?FUNCTION_NAME,?MODULE,?LINE}]),
     timer:sleep(?ControllerStatusInterval),
-    HostsInfo=case rpc:call(node(),iaas,status_all_hosts,[],1*5000) of
-		  {badrpc,Err}->
-		      {error,[badrpc,Err]};
-		  HostsStatus->
-		      HostsStatus
-	      end,
-    ClustersInfo=case rpc:call(node(),iaas,status_all_clusters,[],1*5000) of
-		     {badrpc,Err2}->
-			 {error,[badrpc,Err2]};
-		     ClusterStatus->
-			 ClusterStatus
-		 end,
+ %   spawn(fun()->check_status_pods() end),
+    spawn(fun()->ctrl_strive_desired_state() end).
+
+ctrl_strive_desired_state()->
     
-    rpc:cast(node(),controller,status_interval,[HostsInfo,ClustersInfo]).
+    Status=case rpc:call(node(),controller_lib,status_all_pods,[],10*1000) of
+	       {ok,RunningPods,MissingPods}->
+		   {RunningPods,MissingPods};
+	       _->
+		   {[],[]}
+	   end,
+    StriveResult=rpc:call(node(),controller_lib,strive_desired_state,[Status],90*1000),
+    rpc:cast(node(),controller,status_interval,[StriveResult]).
+   
 
 %% --------------------------------------------------------------------
 %% Function: 

@@ -1,0 +1,608 @@
+{{2021,8,15},
+ {22,28,54},
+ 'controller_lgh@joq62-X550CA',log,"Successful starting of server",
+ [kubelet_server]}.
+{{2021,8,15},
+ {22,28,54},
+ 'controller_lgh@joq62-X550CA',debug,"Cookie",
+ [lgh_cookie,'controller_lgh@joq62-X550CA',init,kubelet_server,76]}.
+{{2021,8,15},
+ {22,28,57},
+ 'controller_lgh@joq62-X550CA',log,"Delete ClusterId ",
+ ["lgh",delete,cluster,124]}.
+{{2021,8,15},
+ {22,28,57},
+ 'controller_lgh@joq62-X550CA',log,"Start init",
+ [iaas_server]}.
+{{2021,8,15},
+ {22,28,57},
+ 'controller_lgh@joq62-X550CA',log,
+ "1/8 load cluster and hosts and deployment info",
+ [init,iaas_server,66]}.
+{{2021,8,15},
+ {22,28,57},
+ 'controller_lgh@joq62-X550CA',log,"2/8 Starts ssh ",
+ [ok,init,iaas_server,67]}.
+{{2021,8,15},
+ {22,29,1},
+ 'controller_lgh@joq62-X550CA',log,"3/8 Running Hosts ",
+ [[{running,"c0_lgh","c0","192.168.0.200",22},
+   {running,"c2_lgh","c2","192.168.0.202",22},
+   {running,"asus_lgh","joq62-X550CA","192.168.0.100",22}],
+  init,iaas_server,76]}.
+{{2021,8,15},
+ {22,29,1},
+ 'controller_lgh@joq62-X550CA',log,"4/8 Missing Hosts ",
+ [[{missing,"c0_varmdo","c0","192.168.1.200",22},
+   {missing,"c1_lgh","c1","192.168.0.201",22},
+   {missing,"c2_varmdo","c2","192.168.1.202",22},
+   {missing,"c1_varmdo","c1","192.168.1.201",22},
+   {missing,"asus_varmdo","joq62-X550CA","192.168.1.50",22}],
+  init,iaas_server,77]}.
+{{2021,8,15},
+ {22,29,1},
+ 'controller_lgh@joq62-X550CA',log,"Create ClusterId ",
+ ["lgh",create,cluster,154]}.
+{{2021,8,15},
+ {22,29,14},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ ["rm -rf lgh",ok,"c0_lgh",start_node,cluster,227]}.
+{{2021,8,15},
+ {22,29,14},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ ["rm -rf lgh",ok,"c2_lgh",start_node,cluster,227]}.
+{{2021,8,15},
+ {22,29,26},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ ["mkdir lgh",ok,"c0_lgh",start_node,cluster,230]}.
+{{2021,8,15},
+ {22,29,26},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ ["mkdir lgh",ok,"c2_lgh",start_node,cluster,230]}.
+{{2021,8,15},
+ {22,29,27},
+ 'controller_lgh@joq62-X550CA',log,"init stop ",
+ [{badrpc,nodedown},c2_lgh@c2,start_node,cluster,241]}.
+{{2021,8,15},
+ {22,29,27},
+ 'controller_lgh@joq62-X550CA',log,"init stop ",
+ [{badrpc,nodedown},c0_lgh@c0,start_node,cluster,241]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ [ok,"nohup erl_call -s -sname c2_lgh -c lgh_cookie &",c2_lgh@c2,start_node,
+  cluster,248]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ [ok,"nohup erl_call -s -sname c0_lgh -c lgh_cookie &",c0_lgh@c0,start_node,
+  cluster,248]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"5/8 Running Clusters ",
+ [[{"lgh",[{"c2_lgh",c2_lgh@c2},{"c0_lgh",c0_lgh@c0}]}],init,iaas_server,87]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"6/8 Missing Clusters ",
+ [[],init,iaas_server,88]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"7/8 Start cluster_status_interval() ",
+ [init,iaas_server,90]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"8/8 Successful starting of server",
+ [iaas_server]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"1/6 Start ",
+ [init,controller,105]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"2/6 Check pods ",
+ [init,controller,106]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"3/6 RunningPods ",
+ [[],init,controller,116]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"4/6 MissingPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  init,controller,117]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"5/6 Start controller_status_interval() ",
+ [init,controller,119]}.
+{{2021,8,15},
+ {22,29,40},
+ 'controller_lgh@joq62-X550CA',log,"6/6 Successful starting of server",
+ [controller]}.
+{{2021,8,15},
+ {22,30,0},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c0",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,30,0},
+ 'controller_lgh@joq62-X550CA',debug,"PodNode info",
+ [{"pod_1629059400524608_lgh",pod_1629059400524608_lgh_c0@c0,
+   "lgh/pod_1629059400524608_lgh",c0_lgh@c0,"c0"},
+  create,pod,155]}.
+{{2021,8,15},
+ {22,30,0},
+ 'controller_lgh@joq62-X550CA',debug,"Create pod Result",
+ [{ok,"pod_1629059400524608_lgh"},"c0",create,pod,158]}.
+{{2021,8,15},
+ {22,30,0},
+ 'controller_lgh@joq62-X550CA',log,"load_start",
+ ["mymath","pod_1629059400524608_lgh",load_start,pod,88]}.
+{{2021,8,15},
+ {22,30,0},
+ 'controller_lgh@joq62-X550CA',debug,"ClusterInfo",
+ ["pod_1629059400524608_lgh",pod_1629059400524608_lgh_c0@c0,
+  "lgh/pod_1629059400524608_lgh",c0_lgh@c0,"c0",load_start,pod,97]}.
+{{2021,8,15},
+ {22,30,0},
+ 'controller_lgh@joq62-X550CA',debug,"AppDir",
+ ["lgh/pod_1629059400524608_lgh/mymath",load,pod,60]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',log,"GitResult",
+ [pod_1629059400524608_lgh_c0@c0,"https://github.com/joq62/mymath.git",
+  "Cloning into 'mymath'...\n",load,pod,65]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',log,"MVResult",
+ ["mymath","lgh/pod_1629059400524608_lgh/mymath",[],load,pod,67]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',log,"load_start, Result=",
+ [{ok,[mymath]},"mymath","pod_1629059400524608_lgh",load_start,pod,118]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',debug,"PodNode info",
+ [{"pod_1629059402251133_lgh",pod_1629059402251133_lgh_c2@c2,
+   "lgh/pod_1629059402251133_lgh",c2_lgh@c2,"c2"},
+  create,pod,155]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',debug,"Create pod Result",
+ [{ok,"pod_1629059402251133_lgh"},"c2",create,pod,158]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',log,"load_start",
+ ["mymath","pod_1629059402251133_lgh",load_start,pod,88]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',debug,"ClusterInfo",
+ ["pod_1629059402251133_lgh",pod_1629059402251133_lgh_c2@c2,
+  "lgh/pod_1629059402251133_lgh",c2_lgh@c2,"c2",load_start,pod,97]}.
+{{2021,8,15},
+ {22,30,2},
+ 'controller_lgh@joq62-X550CA',debug,"AppDir",
+ ["lgh/pod_1629059402251133_lgh/mymath",load,pod,60]}.
+{{2021,8,15},
+ {22,30,3},
+ 'controller_lgh@joq62-X550CA',log,"GitResult",
+ [pod_1629059402251133_lgh_c2@c2,"https://github.com/joq62/mymath.git",
+  "Cloning into 'mymath'...\n",load,pod,65]}.
+{{2021,8,15},
+ {22,30,3},
+ 'controller_lgh@joq62-X550CA',log,"MVResult",
+ ["mymath","lgh/pod_1629059402251133_lgh/mymath",[],load,pod,67]}.
+{{2021,8,15},
+ {22,30,3},
+ 'controller_lgh@joq62-X550CA',log,"load_start, Result=",
+ [{ok,[mymath]},"mymath","pod_1629059402251133_lgh",load_start,pod,118]}.
+{{2021,8,15},
+ {22,30,3},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,30,3},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,30,23},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,30,23},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,30,44},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,30,44},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,31,4},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,31,4},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,31,24},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c0",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,31,24},
+ 'controller_lgh@joq62-X550CA',debug,"PodNode info",
+ [{"pod_1629059484241794_lgh",pod_1629059484241794_lgh_c0@c0,
+   "lgh/pod_1629059484241794_lgh",c0_lgh@c0,"c0"},
+  create,pod,155]}.
+{{2021,8,15},
+ {22,31,24},
+ 'controller_lgh@joq62-X550CA',debug,"Create pod Result",
+ [{ok,"pod_1629059484241794_lgh"},"c0",create,pod,158]}.
+{{2021,8,15},
+ {22,31,24},
+ 'controller_lgh@joq62-X550CA',log,"load_start",
+ ["mymath","pod_1629059484241794_lgh",load_start,pod,88]}.
+{{2021,8,15},
+ {22,31,24},
+ 'controller_lgh@joq62-X550CA',debug,"ClusterInfo",
+ ["pod_1629059484241794_lgh",pod_1629059484241794_lgh_c0@c0,
+  "lgh/pod_1629059484241794_lgh",c0_lgh@c0,"c0",load_start,pod,97]}.
+{{2021,8,15},
+ {22,31,24},
+ 'controller_lgh@joq62-X550CA',debug,"AppDir",
+ ["lgh/pod_1629059484241794_lgh/mymath",load,pod,60]}.
+{{2021,8,15},
+ {22,31,25},
+ 'controller_lgh@joq62-X550CA',log,"GitResult",
+ [pod_1629059484241794_lgh_c0@c0,"https://github.com/joq62/mymath.git",
+  "Cloning into 'mymath'...\n",load,pod,65]}.
+{{2021,8,15},
+ {22,31,25},
+ 'controller_lgh@joq62-X550CA',log,"MVResult",
+ ["mymath","lgh/pod_1629059484241794_lgh/mymath",[],load,pod,67]}.
+{{2021,8,15},
+ {22,31,25},
+ 'controller_lgh@joq62-X550CA',log,"load_start, Result=",
+ [{ok,[mymath]},"mymath","pod_1629059484241794_lgh",load_start,pod,118]}.
+{{2021,8,15},
+ {22,31,25},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,31,25},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,31,40},
+ 'controller_lgh@joq62-X550CA',log,"Running Clusters ",
+ [["lgh"]]}.
+{{2021,8,15},
+ {22,31,44},
+ 'controller_lgh@joq62-X550CA',log,"Running Hosts ",
+ [["c2_lgh","c0_lgh","asus_lgh"]]}.
+{{2021,8,15},
+ {22,31,44},
+ 'controller_lgh@joq62-X550CA',ticket,"Missing Hosts ",
+ [["c0_varmdo","c1_lgh","c2_varmdo","c1_varmdo","asus_varmdo"]]}.
+{{2021,8,15},
+ {22,31,46},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,31,46},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,32,6},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,32,6},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,32,26},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,32,26},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [badrpc,handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,32,26},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [{'EXIT',{{badmatch,{badrpc,nodedown}},
+           [{pod,create,2,[{file,"../kube_iaas/src/pod.erl"},{line,151}]},
+            {controller_lib,load_start,2,
+                            [{file,"src/controller_lib.erl"},{line,88}]},
+            {controller_lib,strive_desired_state,1,
+                            [{file,"src/controller_lib.erl"},{line,80}]},
+            {rpc,'-handle_call_call/6-fun-0-',5,
+                 [{file,"rpc.erl"},{line,197}]}]}},
+  handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,32,46},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,32,46},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [badrpc,handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,32,46},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [{'EXIT',{{badmatch,{badrpc,nodedown}},
+           [{pod,create,2,[{file,"../kube_iaas/src/pod.erl"},{line,151}]},
+            {controller_lib,load_start,2,
+                            [{file,"src/controller_lib.erl"},{line,88}]},
+            {controller_lib,strive_desired_state,1,
+                            [{file,"src/controller_lib.erl"},{line,80}]},
+            {rpc,'-handle_call_call/6-fun-0-',5,
+                 [{file,"rpc.erl"},{line,197}]}]}},
+  handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,33,6},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,33,6},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [badrpc,handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,33,6},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [{'EXIT',{{badmatch,{badrpc,nodedown}},
+           [{pod,create,2,[{file,"../kube_iaas/src/pod.erl"},{line,151}]},
+            {controller_lib,load_start,2,
+                            [{file,"src/controller_lib.erl"},{line,88}]},
+            {controller_lib,strive_desired_state,1,
+                            [{file,"src/controller_lib.erl"},{line,80}]},
+            {rpc,'-handle_call_call/6-fun-0-',5,
+                 [{file,"rpc.erl"},{line,197}]}]}},
+  handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,33,26},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,33,26},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [{'EXIT',{{badmatch,{badrpc,nodedown}},
+           [{pod,create,2,[{file,"../kube_iaas/src/pod.erl"},{line,151}]},
+            {controller_lib,load_start,2,
+                            [{file,"src/controller_lib.erl"},{line,88}]},
+            {controller_lib,strive_desired_state,1,
+                            [{file,"src/controller_lib.erl"},{line,80}]},
+            {rpc,'-handle_call_call/6-fun-0-',5,
+                 [{file,"rpc.erl"},{line,197}]}]}},
+  handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,33,26},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [badrpc,handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,33,40},
+ 'controller_lgh@joq62-X550CA',log,"Create ClusterId ",
+ ["lgh",create,cluster,154]}.
+{{2021,8,15},
+ {22,33,44},
+ 'controller_lgh@joq62-X550CA',log,"Running Hosts ",
+ [["c2_lgh","c0_lgh","asus_lgh"]]}.
+{{2021,8,15},
+ {22,33,44},
+ 'controller_lgh@joq62-X550CA',ticket,"Missing Hosts ",
+ [["c1_lgh","c0_varmdo","c2_varmdo","asus_varmdo","c1_varmdo"]]}.
+{{2021,8,15},
+ {22,33,46},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,33,47},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [badrpc,handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,33,47},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [{'EXIT',{{badmatch,{badrpc,nodedown}},
+           [{pod,create,2,[{file,"../kube_iaas/src/pod.erl"},{line,151}]},
+            {controller_lib,load_start,2,
+                            [{file,"src/controller_lib.erl"},{line,88}]},
+            {controller_lib,strive_desired_state,1,
+                            [{file,"src/controller_lib.erl"},{line,80}]},
+            {rpc,'-handle_call_call/6-fun-0-',5,
+                 [{file,"rpc.erl"},{line,197}]}]}},
+  handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,33,54},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ ["rm -rf lgh",ok,"c2_lgh",start_node,cluster,227]}.
+{{2021,8,15},
+ {22,34,6},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ ["mkdir lgh",ok,"c2_lgh",start_node,cluster,230]}.
+{{2021,8,15},
+ {22,34,7},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,34,7},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [badrpc,handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,34,7},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [{'EXIT',{{badmatch,{badrpc,nodedown}},
+           [{pod,create,2,[{file,"../kube_iaas/src/pod.erl"},{line,151}]},
+            {controller_lib,load_start,2,
+                            [{file,"src/controller_lib.erl"},{line,88}]},
+            {controller_lib,strive_desired_state,1,
+                            [{file,"src/controller_lib.erl"},{line,80}]},
+            {rpc,'-handle_call_call/6-fun-0-',5,
+                 [{file,"rpc.erl"},{line,197}]}]}},
+  handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,34,7},
+ 'controller_lgh@joq62-X550CA',log,"init stop ",
+ [{badrpc,nodedown},c2_lgh@c2,start_node,cluster,241]}.
+{{2021,8,15},
+ {22,34,20},
+ 'controller_lgh@joq62-X550CA',log,"ssh ",
+ [ok,"nohup erl_call -s -sname c2_lgh -c lgh_cookie &",c2_lgh@c2,start_node,
+  cluster,248]}.
+{{2021,8,15},
+ {22,34,20},
+ 'controller_lgh@joq62-X550CA',log,"Running Clusters ",
+ [["lgh"]]}.
+{{2021,8,15},
+ {22,34,27},
+ 'controller_lgh@joq62-X550CA',debug,"Start Create pod",
+ ["c2",worker_nodes,create,pod,134]}.
+{{2021,8,15},
+ {22,34,27},
+ 'controller_lgh@joq62-X550CA',debug,"PodNode info",
+ [{"pod_1629059667354952_lgh",pod_1629059667354952_lgh_c2@c2,
+   "lgh/pod_1629059667354952_lgh",c2_lgh@c2,"c2"},
+  create,pod,155]}.
+{{2021,8,15},
+ {22,34,27},
+ 'controller_lgh@joq62-X550CA',debug,"Create pod Result",
+ [{ok,"pod_1629059667354952_lgh"},"c2",create,pod,158]}.
+{{2021,8,15},
+ {22,34,27},
+ 'controller_lgh@joq62-X550CA',log,"load_start",
+ ["mymath","pod_1629059667354952_lgh",load_start,pod,88]}.
+{{2021,8,15},
+ {22,34,27},
+ 'controller_lgh@joq62-X550CA',debug,"ClusterInfo",
+ ["pod_1629059667354952_lgh",pod_1629059667354952_lgh_c2@c2,
+  "lgh/pod_1629059667354952_lgh",c2_lgh@c2,"c2",load_start,pod,97]}.
+{{2021,8,15},
+ {22,34,27},
+ 'controller_lgh@joq62-X550CA',debug,"AppDir",
+ ["lgh/pod_1629059667354952_lgh/mymath",load,pod,60]}.
+{{2021,8,15},
+ {22,34,28},
+ 'controller_lgh@joq62-X550CA',log,"GitResult",
+ [pod_1629059667354952_lgh_c2@c2,"https://github.com/joq62/mymath.git",
+  "Cloning into 'mymath'...\n",load,pod,65]}.
+{{2021,8,15},
+ {22,34,28},
+ 'controller_lgh@joq62-X550CA',log,"MVResult",
+ ["mymath","lgh/pod_1629059667354952_lgh/mymath",[],load,pod,67]}.
+{{2021,8,15},
+ {22,34,28},
+ 'controller_lgh@joq62-X550CA',log,"load_start, Result=",
+ [{ok,[mymath]},"mymath","pod_1629059667354952_lgh",load_start,pod,118]}.
+{{2021,8,15},
+ {22,34,28},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,34,28},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,34,50},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,34,50},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,35,10},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,35,10},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,35,30},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,35,30},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,35,50},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,35,50},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,36,10},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,36,10},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,36,20},
+ 'controller_lgh@joq62-X550CA',log,"Running Clusters ",
+ [["lgh"]]}.
+{{2021,8,15},
+ {22,36,24},
+ 'controller_lgh@joq62-X550CA',log,"Running Hosts ",
+ [["c2_lgh","c0_lgh","asus_lgh"]]}.
+{{2021,8,15},
+ {22,36,24},
+ 'controller_lgh@joq62-X550CA',ticket,"Missing Hosts ",
+ [["c1_varmdo","c1_lgh","c0_varmdo","asus_varmdo","c2_varmdo"]]}.
+{{2021,8,15},
+ {22,36,31},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,36,31},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.
+{{2021,8,15},
+ {22,36,51},
+ 'controller_lgh@joq62-X550CA',log," RunningPods ",
+ [[{"mymath","mymath_lgh_c0","mymath","c0"},
+   {"mymath","mymath_lgh_c2","mymath","c2"}],
+  handle_cast,controller,159]}.
+{{2021,8,15},
+ {22,36,51},
+ 'controller_lgh@joq62-X550CA',log," MissingPods ",
+ [[],handle_cast,controller,160]}.

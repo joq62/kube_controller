@@ -51,12 +51,26 @@ start()->
 %% --------------------------------------------------------------------
 setup()->
 
-    %% Test env vars 
-   
-%    io:format("Line = ~p~n",[{?MODULE,?LINE}]),
-    
-    % Start a Service application 
-      
+    {ok,ClusterIdAtom}=application:get_env(unit_test,cluster_id),
+    ClusterId=atom_to_list(ClusterIdAtom),
+    os:cmd("rm -rf "++ClusterId),
+    ok=file:make_dir(ClusterId),
+    {ok,MonitorNodeNameAtom}=application:get_env(unit_test,monitor_node),
+    MonitorNodeName=atom_to_list(MonitorNodeNameAtom),
+    {ok,HostId}=inet:gethostname(),
+    MonitorNode=list_to_atom(MonitorNodeName++"@"++HostId),
+    Env=[{cluster_id,ClusterIdAtom},{monitor_node,MonitorNode}],
+    ok=application:set_env([{support,Env},
+			    {kubelet,Env},
+			    {etcd,Env},
+			    {iaas,Env},
+			    {controller,Env}]),
+    ok=application:start(support),
+    ok=application:start(kubelet),
+    ok=application:start(etcd),
+    io:format("cluster:delete(lgh) ~p~n",[{cluster:delete("lgh"),?MODULE,?LINE}]),
+    ok=application:start(iaas),
+    ok=application:start(controller),
     	 
 
     ok.

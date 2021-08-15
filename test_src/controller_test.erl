@@ -77,12 +77,7 @@ start()->
 %% Returns: non
 %% --------------------------------------------------------------------
 pass_0()->
-    [{"c0",_,22,"joq62","festum01"},
-     {"c0",_,22,"joq62","festum01"}]=etcd:host_info_read("c0"),
-    {atomic,[ok]}=etcd:host_info_delete("c0","192.168.0.200",22,"joq62","festum01"),
-    [{"c0","192.168.1.200",22,"joq62","festum01"}]=etcd:host_info_read("c0"),
-    "test_cluster"=etcd:cluster_name(),
-    "abc"=etcd:cluster_cookie(),
+    io:format(" ~p~n",[iaas:status_all_clusters()]),
     ok.
 
 %% --------------------------------------------------------------------
@@ -91,9 +86,7 @@ pass_0()->
 %% Returns: non
 %% --------------------------------------------------------------------
 pass_1()->
-    [{"c1","192.168.0.201",22,"joq62","festum01"},
-     {"c0","192.168.0.200",22,"joq62","festum01"},
-     {"joq62-X550CA","192.168.0.100",22,"joq62","festum01"}]=host_controller:running_hosts(),
+ 
     ok.
 
 %% --------------------------------------------------------------------
@@ -158,17 +151,9 @@ pass_2()->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
--define(APP,controller). 
+
 setup()->
-    rpc:call(node(),application,stop,[?APP],10*5000),
-    timer:sleep(500),
-    application:set_env([{?APP,[{is_leader,true},
-				{cluster_name,"test_cluster"},
-				{cookie,"abc"},
-				{num_controllers,3},
-				{hosts,["c0","c1"]}]}]),
-    ok=rpc:call(node(),application,start,[?APP],10*5000),
-    {pong,_,?APP}=rpc:call(node(),?APP,ping,[],1*5000),	
+  
     ok.
 
 
@@ -180,7 +165,7 @@ setup()->
 
 cleanup()->
   
-    application:stop(controller),
+  %  application:stop(controller),
     ok.
 %% --------------------------------------------------------------------
 %% Function:start/0 
