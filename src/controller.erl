@@ -103,23 +103,25 @@ ping()->
 init([]) ->
      
    ?PrintLog(log,"1/6 Start ",[?FUNCTION_NAME,?MODULE,?LINE]),
-    ?PrintLog(log,"2/6 Check pods ",[?FUNCTION_NAME,?MODULE,?LINE]),
-    case rpc:call(node(),controller_lib,status_all_pods,[],10*1000) of
-	{ok,Running,Missing}->
-	    RunningPods=Running,
-	    MissingPods=Missing;
-	_->
-	    RunningPods=[],
-	    MissingPods=[]
-    end,
+%    ?PrintLog(log,"2/6 Check pods ",[?FUNCTION_NAME,?MODULE,?LINE]),
+%    case rpc:call(node(),controller_lib,status_all_pods,[],10*1000) of
+%	{ok,Running,Missing}->
+%	    RunningPods=Running,
+%	    MissingPods=Missing;
+%	_->
+%	    RunningPods=[],
+%	    MissingPods=[]
+%    end,
    
-    ?PrintLog(log,"3/6 RunningPods ",[RunningPods,?FUNCTION_NAME,?MODULE,?LINE]),
-    ?PrintLog(log,"4/6 MissingPods ",[MissingPods,?FUNCTION_NAME,?MODULE,?LINE]),
+ %   ?PrintLog(log,"3/6 RunningPods ",[RunningPods,?FUNCTION_NAME,?MODULE,?LINE]),
+ %   ?PrintLog(log,"4/6 MissingPods ",[MissingPods,?FUNCTION_NAME,?MODULE,?LINE]),
 
-   ?PrintLog(log,"5/6 Start controller_status_interval() ",[?FUNCTION_NAME,?MODULE,?LINE]),   
-    spawn(fun()->controller_status_interval() end),    
+ %  ?PrintLog(log,"5/6 Start controller_status_interval() ",[?FUNCTION_NAME,?MODULE,?LINE]),   
+ %   spawn(fun()->controller_status_interval() end),    
 
     ?PrintLog(log,"6/6 Successful starting of server",[?MODULE]),
+    RunningPods=[],
+    MissingPods=[],
     {ok, #state{running_pods=RunningPods,missing_pods=MissingPods
 	       }
     }.

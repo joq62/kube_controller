@@ -68,7 +68,7 @@ setup()->
     ok=application:start(support),
     ok=application:start(kubelet),
     ok=application:start(etcd),
-    io:format("cluster:delete(lgh) ~p~n",[{cluster:delete("lgh"),?MODULE,?LINE}]),
+ %   io:format("cluster:delete(lgh) ~p~n",[{cluster:delete("lgh"),?MODULE,?LINE}]),
     ok=application:start(iaas),
     ok=application:start(controller),
     	 

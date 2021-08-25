@@ -15,7 +15,9 @@
 
 % New final ?
 
--export([status_all_pods/0,
+-export([
+	 desired_state/1,
+	 status_all_pods/0,
 	 strive_desired_state/1
 
 	]).
@@ -25,6 +27,23 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================
+%% --------------------------------------------------------------------
+%% Function:start
+%% Description: List of test cases 
+%% Returns: non
+%% --------------------------------------------------------------------
+desired_state(ClusterId)->
+    AllDepSpecs=db_deployment_spec:key_cluster_id(ClusterId),
+    DepSpecPodsInfoList=[{DepId,Pods}||{DepId,_,Pods,_}<-AllDepSpecs],
+    
+    DepSpecPodsInfoList.
+%% --------------------------------------------------------------------
+%% Function:start
+%% Description: List of test cases 
+%% Returns: non
+%% --------------------------------------------------------------------
+
+
 %% --------------------------------------------------------------------
 %% Function:start
 %% Description: List of test cases 
