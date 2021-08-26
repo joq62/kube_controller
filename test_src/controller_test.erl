@@ -85,15 +85,24 @@ pass_0()->
 
     DesiredState=lists:append(desired_state(WantedPods,AvailableHosts)),
     io:format("DesiredState ~p~n",[{DesiredState,?MODULE,?LINE}]),
-
-    %% Match hosts to 
     
-     ok.
+    StartResult=create_pod(DesiredState,ClusterId,[]),
+    io:format("StartResult ~p~n",[{StartResult,?MODULE,?LINE}]),
 
-  % io:format("p_info(WantedPods) ~p~n",[{p_info(WantedPods),?MODULE,?LINE}]),
-
-    %% Wanted Hosts
-
+    io:format("sd:all() ~p~n",[{sd:all(),?MODULE,?LINE}]),
+    
+    ok.
+create_pod([],_ClusterName,StartResult)->
+    StartResult;
+create_pod([PodInfo|T],ClusterName,Acc)->
+    UniqueId=integer_to_list(erlang:system_time(microsecond)), 
+    NodeName=UniqueId++"_"++ClusterName,
+    Dir=UniqueId++"."++ClusterName,
+    Cookie=db_cluster_spec:cookie(ClusterName),
+    io:format("PodInfo ~p~n",[{PodInfo,?MODULE,?LINE}]),
+    R=pod_controller:new(PodInfo,NodeName,Dir,Cookie),
+    create_pod(T,ClusterName,[{R,PodInfo}|Acc]).
+	
 desired_state(WantedPods,AvailableHosts)->
     desired_state(WantedPods,AvailableHosts,[]).
     
