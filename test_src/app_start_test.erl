@@ -11,7 +11,7 @@
 %% --------------------------------------------------------------------
 -include_lib("eunit/include/eunit.hrl").
 %% --------------------------------------------------------------------
--define(APP,controller).
+
 %% External exports
 -export([start/0]).
 
@@ -49,8 +49,11 @@ start()->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
+
 setup()->
 
+    io:format("nodes() ~p~n",[{nodes(),?FUNCTION_NAME,?MODULE,?LINE}]),
+    
     {ok,ClusterIdAtom}=application:get_env(unit_test,cluster_id),
     ClusterId=atom_to_list(ClusterIdAtom),
     os:cmd("rm -rf "++ClusterId),
@@ -59,20 +62,22 @@ setup()->
     MonitorNodeName=atom_to_list(MonitorNodeNameAtom),
     {ok,HostId}=inet:gethostname(),
     MonitorNode=list_to_atom(MonitorNodeName++"@"++HostId),
-    Env=[{cluster_id,ClusterIdAtom},{monitor_node,MonitorNode}],
+  
+    {ok,CookieAtom}=application:get_env(unit_test,cookie),
+    Cookie=atom_to_list(CookieAtom),
+    Env=[{cluster_id,ClusterId},{monitor_node,MonitorNodeName},
+	 {cookie,Cookie}],
     ok=application:set_env([{support,Env},
-			    {kubelet,Env},
-			    {etcd,Env},
-			    {iaas,Env},
-			    {controller,Env}]),
+			    {etcd,Env}]),
     ok=application:start(support),
-    ok=application:start(kubelet),
     ok=application:start(etcd),
- %   io:format("cluster:delete(lgh) ~p~n",[{cluster:delete("lgh"),?MODULE,?LINE}]),
-    ok=application:start(iaas),
+    ok=application:start(kubelet),
+    ok=application:start(cluster),
     ok=application:start(controller),
-    	 
 
+  %  ok=application:start(cluster),
+
+  
     ok.
 
 

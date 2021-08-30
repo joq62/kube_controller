@@ -1,14 +1,8 @@
 %%% -------------------------------------------------------------------
 %%% @author  : Joq Erlang
 %%% @doc: : 
-%%% Manage Computers
-%%% Install Cluster
-%%% Install cluster
-%%% Data-{HostId,Ip,SshPort,Uid,Pwd}
-%%% available_hosts()-> [{HostId,Ip,SshPort,Uid,Pwd},..]
-%%% install_leader_host({HostId,Ip,SshPort,Uid,Pwd})->ok|{error,Err}
-%%% cluster_status()->[{running,WorkingNodes},{not_running,NotRunningNodes}]
-
+%%%
+%%%
 %%% Created : 
 %%% -------------------------------------------------------------------
 -module(controller).  

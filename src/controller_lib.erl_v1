@@ -16,10 +16,11 @@
 % New final ?
 
 -export([
+	 new_pod/1,
 
 	 desired_state/1,
 	 status_all_pods/0,
-	 strive_desired_state/0
+	 strive_desired_state/1
 
 	]).
 
@@ -44,42 +45,16 @@ strive_desired_state()->
 		{error,Reason}->
 		    {error,Reason};
 		{ok,WantedPods}->
-		   % case desired_state(WantedPods,ClusterId) of
-		    %{error,Reason}->
-		%	    {error,Reason};
-		%	{ok,DesiredState}->
-		%	    case actual_state() of
-%			    {{desired_state,DesiredState},{wanted_pods,WantedPods}}
-		    WantedApps=wanted_apps(WantedPods),
-		    {{wanted_apps,WantedApps},{wanted_pods,WantedPods}}
+		    case desired_state(WantedPods,ClusterId) of
+			{error,Reason}->
+			    {error,Reason};
+			{ok,DesiredState}->
+			    {{desired_state,DesiredState},{wanted_pods,WantedPods}}
+		    end
 	    end,
     Result.
 		    
 
-%is_desired_state(WantedApps)->
- %   is_desired_state(WantedApps,[]).
-
-%is_desired_state([{App,Num,[{Alias,HostId}]}|T],Acc)->
- %   Nodes=sd:get(App),
-  %  NumAppNodes=lists:flatlength(Nodes),
-  %  if 
-%	NumAppNodes>Num ->
-%	    {error,["to many Apps deployed",App,Num
-	    
-	    
-
-
-wanted_apps(WantedPods)->
-    wanted_apps(WantedPods,[]).
-wanted_apps([],WantedApps)->
-    lists:append(WantedApps);
-wanted_apps([WantedPodInfo|T],Acc)->
-    {info,DepId,PodSpec,PodSpecVsn,NumPods}=lists:keyfind(info,1,WantedPodInfo),
-    {containers,ContainerList}=lists:keyfind(containers,1,WantedPodInfo),
-    {wanted_hosts,HostsInfoList}=lists:keyfind(wanted_hosts,1,WantedPodInfo),
-    X=[{list_to_atom(AppId),NumPods,HostsInfoList}||{AppId,_Vsn,_GitPath,_Env}<-ContainerList],
-    wanted_apps(T,[X|Acc]).
-    
 get_wanted_pods(ClusterId)->
     Result=case db_deployment_spec:key_cluster_id(ClusterId) of
 	       []->
@@ -97,7 +72,7 @@ desired_state(WantedPods,ClusterId)->
     desired_state(WantedPods,AvailableHosts,[]).
     
 desired_state([],_AvailableHosts,DesiredState)->
-    {ok,lists:append(DesiredState)};
+    DesiredState;
 desired_state([Pods|T],AvailableHosts,Acc)->
     {info,DepId,Name,Vsn,Num}=lists:keyfind(info,1,Pods),
     {containers,Containers}=lists:keyfind(containers,1,Pods),
@@ -123,13 +98,50 @@ create_deployment(DepId,Name,Vsn,Containers,Candidates,Num,Acc)->
     create_deployment(DepId,Name,Vsn,Containers,Candidates,Num-1,[Info|Acc]).
 
 
+get_available_hosts(ClusterId)->
+ %   AllClusterHosts=sd:call(etcd,db_cluster_spec,hosts,[ClusterId],5*1000),
+  %  io:format("AllHosts ~p~n",[{AllHosts,?MODULE,?LINE}]),
 
+    AllRunningHosts=sd:call(cluster,cluster,running_hosts,[],10*1000),
+ %   RunningHosts=[{Alias,HostId}||{running,Alias,HostId,_Ip,_Port}<-RunningHosts],
+
+   % io:format("AllRunningHosts ~p~n",[{AllRunningHosts,?MODULE,?LINE}]),
+
+    AvailableHosts=[{Alias,HostId}||{Alias,HostId}<-AllClusterHosts,
+				    lists:member({Alias,HostId},AllRunningHosts)],
+    %io:format("AvailableHosts ~p~n",[{AvailableHosts,?MODULE,?LINE}]),
+    AvailableHosts.    
+
+
+running_hosts()->
+    RunningHosts=sd:call(cluster,cluster,running_hosts,[],10*1000),
+    Running=[{Alias,HostId}||{running,Alias,HostId,_Ip,_Port}<-RunningHosts],
+    Running.
 %% --------------------------------------------------------------------
 %% Function:start
 %% Description: List of test cases 
 %% Returns: non
 %% --------------------------------------------------------------------
+new_pod(ClusterId)->
+    AllDepSpecs=db_deployment_spec:key_cluster_id(ClusterId),
+    DepSpecPodsInfoList=[{DepId,Pods}||{DepId,_,Pods,_}<-AllDepSpecs],
 
+    %% WantedPods
+    WantedPods=lists:append([get_pod_spec(DepId,Pods)||{DepId,Pods}<-DepSpecPodsInfoList]),
+ %   io:format("WantedPods ~p~n",[{WantedPods,?MODULE,?LINE}]),   
+ 
+    AvailableHosts=get_available_hosts(ClusterId),
+ %   io:format("AvailableHosts ~p~n",[{AvailableHosts,?MODULE,?LINE}]),
+
+    DesiredState=lists:append(desired_state(WantedPods,AvailableHosts)),
+    io:format("DesiredState ~p~n",[{DesiredState,?MODULE,?LINE}]),
+    
+  %  StartResult=create_pod(DesiredState,ClusterId,[]),
+    
+    StartResult=new_pod(DesiredState,ClusterId),
+    UpdateResult=update_dbase(StartResult,ClusterId,[]),
+    
+    UpdateResult.
 update_dbase([],_ClusterId,UpdateResult)->
     UpdateResult;
 update_dbase([StartResult|T],ClusterId,Acc)->

@@ -20,6 +20,8 @@ unit_test:
 	cp ../applications/support/src/*.app lgh_ebin;
 	erlc -I ../interfaces -o lgh_ebin ../kube_support/src/*.erl;
 	erlc -I ../interfaces -o lgh_ebin ../applications/support/src/*.erl;
+#	kube_pod
+	erlc -I ../interfaces -o lgh_ebin ../kube_pod/src/*.erl;
 #	kubelet
 	cp ../applications/kubelet/src/*.app lgh_ebin;
 	erlc -I ../interfaces -o lgh_ebin ../node/src/*.erl;
@@ -28,10 +30,10 @@ unit_test:
 	cp ../applications/etcd/src/*.app lgh_ebin;
 	erlc -I ../interfaces -o lgh_ebin ../kube_dbase/src/*.erl;
 	erlc -I ../interfaces -o lgh_ebin ../applications/etcd/src/*.erl;
-#	iaas
-	cp ../applications/iaas/src/*.app lgh_ebin;
-	erlc -I ../interfaces -o lgh_ebin ../kube_iaas/src/*.erl;
-	erlc -I ../interfaces -o lgh_ebin ../applications/iaas/src/*.erl;
+#	Cluster
+	cp ../applications/cluster/src/*.app lgh_ebin;
+	erlc -I ../interfaces -o lgh_ebin ../kube_cluster/src/*.erl;
+	erlc -I ../interfaces -o lgh_ebin ../applications/cluster/src/*.erl;
 #	Controller
 	cp ../applications/controller/src/*.app lgh_ebin;
 	erlc -I ../interfaces -o lgh_ebin ../applications/controller/src/*.erl;
@@ -45,5 +47,5 @@ unit_test:
 	    -sname controller_lgh\
 	    -unit_test monitor_node controller_lgh\
 	    -unit_test cluster_id lgh\
-	    -unit_test start_host_id asus_lgh\
+	    -unit_test cookie lgh_cookie\
 	    -run unit_test start_test test_src/test.config
