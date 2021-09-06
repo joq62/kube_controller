@@ -1,6 +1,6 @@
 all:
 #	service
-	rm -rf ebin/* varmdo  *.deployment;
+	rm -rf ebin/* varmdo*  *.deployment;
 	rm -rf src/*.beam *.beam  test_src/*.beam test_ebin;
 	rm -rf  *~ */*~  erl_cra*;
 	rm -rf lgh lgh_ebin;
