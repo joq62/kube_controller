@@ -35,37 +35,9 @@
 
 
 %% server interface
+
+
 -export([
-	 cluster_info/0,
-	 cluster_info/1,
-	 catalog_info/0,
-	 host_info/0
-	]).
-
-
--export([is_leader/0,
-	 host_info_create/5,
-	 host_info_delete/5,
-	 host_info_read/1,
-	 host_info_all/0,
-	 cluster_info_create/2,
-	 cluster_name/0,
-	 cluster_cookie/0]).
-
--export([install/0]).
-
--export([add_node/1,
-	 delete_node/1,
-	 add_table/3,
-	 create_table/2,
-	 sys_info/0,
-	 check_started_extra_node/0
-	]).
-
--export([init_table_info/1,
-	 delete_schema_file/0,
-	 load_textfile/2,
-	 load_textfile/1,
 	 ping/0	 
 	]).
 
@@ -102,68 +74,14 @@ stop()-> gen_server:call(?MODULE, {stop},infinity).
 
 
 %%---------------- Etcd ------------------------------------------------
-cluster_info()->
-    gen_server:call(?MODULE,{cluster_info},infinity).
-cluster_info(Name)->
-    gen_server:call(?MODULE,{cluster_info,Name},infinity).
-
-catalog_info()->
-    gen_server:call(?MODULE,{catalog_info},infinity).
-host_info()->
-    gen_server:call(?MODULE,{host_info},infinity).
 
 
-cluster_info_create(ClusterName,Cookie)->
-    gen_server:call(?MODULE,{cluster_info_create,ClusterName,Cookie},infinity).
-
-cluster_name()->
-    gen_server:call(?MODULE,{cluster_name},infinity).
-cluster_cookie()->
-    gen_server:call(?MODULE,{cluster_cookie},infinity).
-
-is_leader()->
-    gen_server:call(?MODULE,{is_leader},infinity).
-host_info_create(HostId,Ip,SshPort,UId,Pwd)->
-    gen_server:call(?MODULE,{host_info_create,HostId,Ip,SshPort,UId,Pwd},infinity).
-host_info_delete(HostId,Ip,SshPort,UId,Pwd)->
-    gen_server:call(?MODULE,{host_info_delete,HostId,Ip,SshPort,UId,Pwd},infinity).
-host_info_read(HostId)->
-    gen_server:call(?MODULE,{host_info_read,HostId},infinity).
-host_info_all()->
-    gen_server:call(?MODULE,{host_info_all},infinity).
-
-
-%%----------------------------------------------------------------------
-sys_info()->
-    gen_server:call(?MODULE,{sys_info},infinity).
-add_table(Vm,Table,StorageType)->
-      gen_server:call(?MODULE,{add_table,Vm,Table,StorageType},infinity).
-create_table(Table,Args)->
-    gen_server:call(?MODULE,{create_table,Table,Args},infinity).
-add_node(Vm)->
-    gen_server:call(?MODULE,{add_node,Vm},infinity).
-delete_node(Vm)->
-    gen_server:call(?MODULE,{delete_node,Vm},infinity).
-
-
-init_table_info(Info)->
-    gen_server:call(?MODULE,{init_table_info,Info},infinity).
-
-delete_schema_file()->
-    gen_server:call(?MODULE,{delete_schema_file},infinity).
-
-load_textfile(Filename,Bin)->    
-    gen_server:call(?MODULE,{load_textfile,Filename,Bin},infinity).
-load_textfile(FileName)->    
-    gen_server:call(?MODULE,{load_textfile,FileName},infinity).
     
 ping()->
     gen_server:call(?MODULE,{ping},infinity).
 
 %%___________________________________________________________________
 
-check_started_extra_node()->
-    gen_server:cast(?MODULE,{check_started_extra_node}).
 
 %%-----------------------------------------------------------------------
 

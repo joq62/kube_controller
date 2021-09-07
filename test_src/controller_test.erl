@@ -76,16 +76,39 @@ start()->
 %% Returns: non
 %% --------------------------------------------------------------------
 init_mnesia()->
-    ok=dbase_controller_lib:init_mnesia(),
+    
+  
+    standby_controller=check_status(),
+%   io:format("1. ~p~n",[{rpc:call(node(),mnesia,system_info,[],5*1000)}]),
+    ok=dbase_controller_lib:initial_start_mnesia(),
+ %   io:format("2. ~p~n",[{mnesia:system_info(tables)}]),
+     leader_controller_mnesia_not_initated=check_status(),
+    ok=dbase_controller_lib:init_tables(),
     [{"c2","192.168.0.202",22,"joq62","festum01"},
      {"c0","192.168.0.200",22,"joq62","festum01"},
      {"joq62-X550CA","192.168.0.100",22,"joq62",
       "festum01"}]=db_host_info:read_all(),
+  %  io:format("3. ~p~n",[{mnesia:system_info(tables)}]),
+     leader_controller_mnesia_initiated=check_status(),
     
     false=db_lock:is_open(cluster),
-    
     ok.
 
+check_status()->
+    Status=case mnesia:system_info() of
+	       no->
+		   standby_controller;
+	       yes ->
+		   case mnesia:system_info(tables) of
+		       []->
+			   {error,[mnesia,system_info,?FUNCTION_NAME,?MODULE,?LINE]};
+		       [schema]->
+			   leader_controller_mnesia_not_initated;
+		       _Tables ->
+			   leader_controller_mnesia_initiated
+		   end
+	   end,
+    Status.
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
@@ -105,9 +128,19 @@ create_vm()->
     io:format("NodeC0 ~p~n",[NodeC0]),
     pong=net_adm:ping(NodeC0),
 
+    {ok,Slave1_C0}=rpc:call(NodeC0,slave,start,["c0",slave1_c0,"-setcookie "++Cookie]),
+    pong=net_adm:ping(Slave1_C0),
+    io:format("Slave1_C0 ~p~n",[Slave1_C0]),
+
     {ok,NodeC2}=vm_handler:create_vm(C2,NodeNameC2,Dirc2,Cookie),
     io:format("NodeC2 ~p~n",[NodeC2]),
     pong=net_adm:ping(NodeC2),
+
+    {ok,Slave1_C2}=rpc:call(NodeC2,slave,start,["c2",slave1_c2,"-setcookie "++Cookie]),
+    pong=net_adm:ping(Slave1_C2),
+    io:format("Slave1_C2 ~p~n",[Slave1_C2]),
+		
+    
     ok.
 
 

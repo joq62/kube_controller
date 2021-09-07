@@ -33,7 +33,10 @@
 
 
 %% External exports
--export([init_mnesia/0,
+-export([
+	 check_mnesia_status/0,
+	 initial_start_mnesia/0,
+	 init_tables/0,
 	 create_tables/0,
 	 init_distributed_mnesia/1,
 	 add_nodes/1
@@ -45,15 +48,32 @@
 %% External functions
 %% ====================================================================
 
+check_mnesia_status()->
+    Status=case mnesia:system_info() of
+	       no->
+		   standby_controller;
+	       yes ->
+		   case mnesia:system_info(tables) of
+		       []->
+			   {error,[mnesia,system_info,?FUNCTION_NAME,?MODULE,?LINE]};
+		       [schema]->
+			   leader_controller_mnesia_not_initated;
+		       _Tables ->
+			   leader_controller_mnesia_initiated
+		   end
+	   end,
+    Status.
 %% --------------------------------------------------------------------
 %% Function:start
 %% Description: List of test cases 
 %% Returns: non
 %% --------------------------------------------------------------------
-init_mnesia()->
+initial_start_mnesia()->
     mnesia:stop(),
     mnesia:delete_schema([node]),
     mnesia:start(),
+    ok.
+init_tables()->
     ok=db_host_info:create_table(),
     ok=init_host_info(),
 
