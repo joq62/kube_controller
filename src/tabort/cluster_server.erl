@@ -1,13 +1,13 @@
 %%% -------------------------------------------------------------------
 %%% @author  : Joq Erlang
 %%% @doc: : 
-%%%
-%%%
+%%% Manage hosts and ensure that kubelet are loaded and running
+%%% 
 %%% Created : 
 %%% -------------------------------------------------------------------
--module(controller).  
+-module(cluster_server).  
+ 
 -behaviour(gen_server).
-
 %% --------------------------------------------------------------------
 %% Include files
 %% --------------------------------------------------------------------
@@ -18,34 +18,17 @@
 %% Key Data structures
 %% 
 %% --------------------------------------------------------------------
--record(state, {running_pods,
-		missing_pods}).
+-record(state, {cluster_status}).
+
+
 
 %% --------------------------------------------------------------------
 %% Definitions 
-%% --------------------------------------------------------------------
--define(ControllerStatusInterval,20*1000).
-%% --------------------------------------------------------------------
-%% Function: available_hosts()
-%% Description: Based on hosts.config file checks which hosts are avaible
-%% Returns: List({HostId,Ip,SshPort,Uid,Pwd}
+%-define(WantedStateInterval,60*1000).
+-define(ClusterStatusInterval,1*20*1000).
 %% --------------------------------------------------------------------
 
 
-
-
-
-% OaM related
--export([
-	 status_interval/1,
-	 boot/0,
-	 ping/0
-	]).
-
-
--export([start/0,
-	 stop/0
-	]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3,handle_cast/2, handle_info/2, terminate/2, code_change/3]).
@@ -55,30 +38,7 @@
 %% External functions
 %% ====================================================================
 
-%% Asynchrounus Signals
 
-boot()->
-    application:start(?MODULE).
-
-%% Gen server functions
-
-start()-> gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
-stop()-> gen_server:call(?MODULE, {stop},infinity).
-
-
-%%---------------------------------------------------------------
-status_interval(PodsStatus)->
-  gen_server:cast(?MODULE,{status_interval,PodsStatus}).
-
-
-%%---------------------------------------------------------------
-
-ping()-> 
-    gen_server:call(?MODULE, {ping},infinity).
-
-%%-----------------------------------------------------------------------
-
-%%----------------------------------------------------------------------
 
 
 %% ====================================================================
@@ -86,7 +46,7 @@ ping()->
 %% ====================================================================
 
 %% --------------------------------------------------------------------
-%% Function: 
+%% Function: init/1
 %% Description: Initiates the server
 %% Returns: {ok, State}          |
 %%          {ok, State, Timeout} |
@@ -94,31 +54,56 @@ ping()->
 %%          {stop, Reason}
 %
 %% --------------------------------------------------------------------
+
+% To be removed
+
 init([]) ->
-     
-   ?PrintLog(log,"1/6 Start ",[?FUNCTION_NAME,?MODULE,?LINE]),
-%    ?PrintLog(log,"2/6 Check pods ",[?FUNCTION_NAME,?MODULE,?LINE]),
-%    case rpc:call(node(),controller_lib,status_all_pods,[],10*1000) of
-%	{ok,Running,Missing}->
-%	    RunningPods=Running,
-%	    MissingPods=Missing;
-%	_->
-%	    RunningPods=[],
-%	    MissingPods=[]
-%    end,
+
+ 
+   % ?PrintLog(log,"Start init",[?FUNCTION_NAME,?MODULE,?LINE]),
+    Result= case dbase_lib:check_mnesia_status() of
+		mnesia_not_started->
+		    ok=dbase_lib:initial_start_mnesia(),
+		    ok=dbase_lib:init_tables(),
+		    false=db_lock:is_open(dbase_lib:lock_id()),
+		    leader;
+		mnesia_started->
+		    ok=dbase_lib:init_tables(),
+		    false=db_lock:is_open(dbase_lib:lock_id()),
+		    leader;
+		mnesia_started_tables_initiated->
+		    standby;
+		{error,Reason}->
+		    {error,Reason}
+	    end,
+    {ok,_}=kube_logger:start(),
+    ?PrintLog(debug,"Result",[Result,?FUNCTION_NAME,?MODULE,?LINE]),
+    
+    case db_lock:is_leader(dbase_lib:lock_id(),node()) of
+	false->
+	    ok;
+	true->
+	    case rpc:call(node(),cluster_lib,strive_desired_state,[],3*60*1000) of
+		{error,StartReason}->
+		    ?PrintLog(debug,"error",[StartReason,?FUNCTION_NAME,?MODULE,?LINE]);
+		HostStatus->
+		    ?PrintLog(debug,"HostStatus",[HostStatus,?FUNCTION_NAME,?MODULE,?LINE])
+	    end
+    end,
+    % Loads dbase host and cluster info
+   % ?PrintLog(log,"1/8 load cluster and hosts and deployment info",[?FUNCTION_NAME,?MODULE,?LINE]),
+   % ?PrintLog(log,"2/8 Starts ssh ",[ssh:start(),?FUNCTION_NAME,?MODULE,?LINE]),
+    
+  %  ssh:start(),
+   % {ok,StartResult,HostWithOutKubeletResult}=cluster_lib:strive_desired_state(),
    
- %   ?PrintLog(log,"3/6 RunningPods ",[RunningPods,?FUNCTION_NAME,?MODULE,?LINE]),
- %   ?PrintLog(log,"4/6 MissingPods ",[MissingPods,?FUNCTION_NAME,?MODULE,?LINE]),
+   % ?PrintLog(log," HostWithOutKubeletResult ",[HostWithOutKubeletResult,?FUNCTION_NAME,?MODULE,?LINE]),
+   % ?PrintLog(log," StartResult",[StartResult,?FUNCTION_NAME,?MODULE,?LINE]),
+  
+    spawn(fun()->cluster_status_interval() end),    
 
- %  ?PrintLog(log,"5/6 Start controller_status_interval() ",[?FUNCTION_NAME,?MODULE,?LINE]),   
- %   spawn(fun()->controller_status_interval() end),    
-
-    ?PrintLog(log,"6/6 Successful starting of server",[?MODULE]),
-    RunningPods=[],
-    MissingPods=[],
-    {ok, #state{running_pods=RunningPods,missing_pods=MissingPods
-	       }
-    }.
+    ?PrintLog(log,"STARTED SERVER",[node(),?FUNCTION_NAME,?MODULE,?LINE]),
+    {ok, #state{cluster_status=undefined}}.
     
 %% --------------------------------------------------------------------
 %% Function: handle_call/3
@@ -131,12 +116,20 @@ init([]) ->
 %%          {stop, Reason, State}            (aterminate/2 is called)
 %% --------------------------------------------------------------------
 
-handle_call({ping},_From,State) ->
-    Reply={pong,node(),?MODULE},
+handle_call({running_hosts},_From,State) ->
+    Reply=rpc:call(node(),host,running,[],20*1000),
     {reply, Reply, State};
+handle_call({missing_hosts},_From,State) ->
+    Reply=rpc:call(node(),host,missing,[],20*1000),
+    {reply, Reply, State};
+%%------ Standard
 
 handle_call({stop}, _From, State) ->
     {stop, normal, shutdown_ok, State};
+
+handle_call({ping},_From,State) ->
+    Reply={pong,node(),?MODULE},
+    {reply, Reply, State};
 
 handle_call(Request, From, State) ->
     Reply = {unmatched_signal,?MODULE,Request,From},
@@ -149,17 +142,19 @@ handle_call(Request, From, State) ->
 %%          {noreply, State, Timeout} |
 %%          {stop, Reason, State}            (terminate/2 is called)
 %% -------------------------------------------------------------------
-handle_cast({status_interval,StriveResult}, State) ->
-    case  StriveResult of
-	{RunningPods,MissingPods}->
-	    ?PrintLog(log," RunningPods ",[RunningPods,?FUNCTION_NAME,?MODULE,?LINE]),
-	    ?PrintLog(log," MissingPods ",[MissingPods,?FUNCTION_NAME,?MODULE,?LINE]),
-	    NewState=State#state{running_pods=RunningPods,missing_pods=MissingPods};
-	Err->
-	    ?PrintLog(ticket," Error ",[Err,?FUNCTION_NAME,?MODULE,?LINE]),
-	    NewState=State
-    end,
-    spawn(fun()->controller_status_interval() end), 
+
+
+handle_cast({cluster_status,Status}, State) ->
+    ChangedStatus=Status/=State#state.cluster_status,
+    NewState=case ChangedStatus of
+	       false->
+		   State;
+	       true->
+		   ?PrintLog(log,"Changed cluster_status  = ",[Status,?FUNCTION_NAME,?MODULE,?LINE]),
+		   State#state{cluster_status=Status}
+	   end,
+  
+    spawn(fun()->cluster_status_interval() end),  
     {noreply, NewState};
 
 handle_cast(Msg, State) ->
@@ -213,25 +208,13 @@ code_change(_OldVsn, State, _Extra) ->
 %% Description:
 %% Returns: non
 %% --------------------------------------------------------------------
-controller_status_interval()->
-    timer:sleep(?ControllerStatusInterval),
- %   spawn(fun()->check_status_pods() end),
-    spawn(fun()->ctrl_strive_desired_state() end).
-
-ctrl_strive_desired_state()->
-    
-    Status=case rpc:call(node(),controller_lib,status_all_pods,[],10*1000) of
-	       {ok,RunningPods,MissingPods}->
-		   {RunningPods,MissingPods};
-	       _->
-		   {[],[]}
-	   end,
-    StriveResult=rpc:call(node(),controller_lib,strive_desired_state,[Status],90*1000),
-    rpc:cast(node(),controller,status_interval,[StriveResult]).
-   
-
-%% --------------------------------------------------------------------
-%% Function: 
-%% Description:
-%% Returns: non
-%% --------------------------------------------------------------------
+cluster_status_interval()->
+    ?PrintLog(log,"START ",[?FUNCTION_NAME,?MODULE,?LINE]),
+    timer:sleep(10*1000),
+ %   ?PrintLog(log,"Start ",[cluster_lib,strive_desired_state,?FUNCTION_NAME,?MODULE,?LINE]),
+    Result=rpc:call(node(),cluster_lib,strive_desired_state,[],3*60*1000),
+ %   ?PrintLog(log,"Result desired state",[Result,?FUNCTION_NAME,?MODULE,?LINE]),
+    timer:sleep(?ClusterStatusInterval),
+    rpc:cast(node(),cluster,cluster_status,[Result]),
+    ?PrintLog(log,"END ",[?FUNCTION_NAME,?MODULE,?LINE]).
+	    

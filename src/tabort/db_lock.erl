@@ -60,19 +60,7 @@ read(Object) ->
 leader(Object)->
     Z=do(qlc:q([X || X <- mnesia:table(?TABLE),
 		     X#?RECORD.lock_id==Object])),
-    [Leader||{?RECORD,_LockId,_Time,Leader}<-Z].
-    
-is_leader(Object,Node)->
-    Z=do(qlc:q([X || X <- mnesia:table(?TABLE),
-		     X#?RECORD.lock_id==Object,
-		     X#?RECORD.leader==Node])),
-    Result=case Z of
-	       []->
-		   false;
-	       _->
-		   true
-	   end,
-    Result.
+    [Leader||{?RECORD,YLockId,Time,Leader}<-Z].
     
 is_open(Object)->
     is_open(Object,?LockTimeOut).

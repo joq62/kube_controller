@@ -13,7 +13,8 @@ unit_test:
 	rm -rf ebin/* src/*.beam *.beam test_src/*.beam test_ebin;
 	rm -rf  *~ */*~  erl_cra*;
 	rm -rf *_specs *_config *.log;
-	mkdir varmdo_ebin;	
+	mkdir varmdo_ebin;
+	mkdir test_ebin;
 #	interface
 	erlc -I ../interfaces -o varmdo_ebin ../interfaces/*.erl;
 #	support
@@ -21,9 +22,10 @@ unit_test:
 	erlc -I ../interfaces -o varmdo_ebin ../kube_support/src/*.erl;
 	erlc -I ../interfaces -o varmdo_ebin ../applications/support/src/*.erl;
 #	controller
+	cp ../applications/controller/src/*.app varmdo_ebin;
+	erlc -I ../interfaces -o varmdo_ebin ../applications/controller/src/*.erl;
 	erlc -I ../interfaces -o varmdo_ebin src/*.erl;
 #	test application
-	mkdir test_ebin;
 	cp test_src/*.app test_ebin;
 	erlc -o test_ebin test_src/*.erl;
 	erl -pa varmdo_ebin -pa test_ebin\

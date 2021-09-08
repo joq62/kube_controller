@@ -52,28 +52,12 @@ start()->
 
 setup()->
 
-    io:format("nodes() ~p~n",[{nodes(),?FUNCTION_NAME,?MODULE,?LINE}]),
-    
-    {ok,ClusterIdAtom}=application:get_env(unit_test,cluster_id),
-    ClusterId=atom_to_list(ClusterIdAtom),
-    os:cmd("rm -rf "++ClusterId),
-    ok=file:make_dir(ClusterId),
-    {ok,MonitorNodeNameAtom}=application:get_env(unit_test,monitor_node),
-    MonitorNodeName=atom_to_list(MonitorNodeNameAtom),
-    {ok,HostId}=inet:gethostname(),
-    MonitorNode=list_to_atom(MonitorNodeName++"@"++HostId),
-  
-    {ok,CookieAtom}=application:get_env(unit_test,cookie),
-    Cookie=atom_to_list(CookieAtom),
-    Env=[{cluster_id,ClusterId},{monitor_node,MonitorNodeName},
-	 {cookie,Cookie}],
-  %  ok=application:set_env([{support,Env},
-%			    {etcd,Env}]),
- %   ok=application:start(support),
+   
+    ok=application:start(support),
   %  ok=application:start(etcd),
   %  ok=application:start(kubelet),
   %  ok=application:start(cluster),
-  %  ok=application:start(controller),
+    ok=application:start(controller),
 
   %  ok=application:start(cluster),
 
