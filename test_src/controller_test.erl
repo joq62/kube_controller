@@ -83,8 +83,11 @@ new()->
     standby=controller:status(),
     {ok,_}=controller:new(ClusterId,MonitorNode,Cookie),
     
- 
-    
+    Status=controller:hosts_status(),
+    io:format("Status ~p~n",[Status]),
+    {ok,Running,Missing}=Status,
+    [_,_,_]=controller:hosts_running(),
+    []=controller:hosts_missing(),
     [_,_,_]=nodes(),
     
     ok.

@@ -95,6 +95,16 @@ handle_call({status},_From,State) ->
     Reply=State#state.status,
     {reply, Reply, State};
 
+handle_call({hosts_status},_From,State) ->
+    Reply=rpc:call(node(),host,status_all_hosts,[],3*5*1000),
+    {reply, Reply, State};
+handle_call({hosts_running},_From,State) ->
+    Reply=rpc:call(node(),host,running,[],3*5*1000),
+    {reply, Reply, State};
+handle_call({hosts_missing},_From,State) ->
+    Reply=rpc:call(node(),host,missing,[],3*5*1000),
+    {reply, Reply, State};
+
 handle_call({ping},_From,State) ->
     Reply={pong,node(),?MODULE},
     {reply, Reply, State};

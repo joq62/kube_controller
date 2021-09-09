@@ -194,7 +194,7 @@ init_cluster_info(ClusterId,MonitorNode,Cookie)->
   %  MonitorNode=list_to_atom(MonitorNodeName++"@"++HostId),
  %   {ok,Cookie}=application:get_env(cookie),
     {atomic,ok}=db_cluster_info:create(ClusterId,MonitorNode,Cookie),
-    io:format("ClusterId,MonitorNode,Cookie ~p~n",[{ClusterId,MonitorNode,Cookie,?MODULE,?LINE}]),
+   % io:format("ClusterId,MonitorNode,Cookie ~p~n",[{ClusterId,MonitorNode,Cookie,?MODULE,?LINE}]),
     ok.
 
 %% --------------------------------------------------------------------
