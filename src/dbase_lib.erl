@@ -94,6 +94,7 @@ init_tables(ClusterId,MonitorNode,Cookie)->
   %  ok=db_app_info:create_table(),
     ok=init_app_info(),
       
+    ok=db_host_status:create_table(),
     ok.
 
 init_distributed_mnesia(Nodes)->

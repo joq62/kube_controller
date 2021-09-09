@@ -35,9 +35,9 @@ start()->
     ok=new(),
     io:format("~p~n",[{"Stop new()",?MODULE,?FUNCTION_NAME,?LINE}]),
 
-  %  io:format("~p~n",[{"Start create_vm()",?MODULE,?FUNCTION_NAME,?LINE}]),
-  %  ok=create_vm(),
-  %  io:format("~p~n",[{"Stop create_vm()",?MODULE,?FUNCTION_NAME,?LINE}]),
+    io:format("~p~n",[{"Start create_slave()",?MODULE,?FUNCTION_NAME,?LINE}]),
+    ok=create_slave(),
+    io:format("~p~n",[{"Stop create_slave()",?MODULE,?FUNCTION_NAME,?LINE}]),
 
   %  io:format("~p~n",[{"Start dist_mnesia()",?MODULE,?FUNCTION_NAME,?LINE}]),
   %  ok=dist_mnesia(),
@@ -81,11 +81,11 @@ new()->
     Cookie=atom_to_list(erlang:get_cookie()),
     MonitorNode=node(),
     standby=controller:status(),
-    {ok,_}=controller:new(ClusterId,MonitorNode,Cookie),
+    {ok,StartList}=controller:new(ClusterId,MonitorNode,Cookie),
+    [db_host_status:create(HostId,Node)||{ok,HostId,Node}<-StartList],
     
     Status=controller:hosts_status(),
     io:format("Status ~p~n",[Status]),
-    {ok,Running,Missing}=Status,
     [_,_,_]=controller:hosts_running(),
     []=controller:hosts_missing(),
     [_,_,_]=nodes(),
@@ -97,8 +97,25 @@ new()->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-pass_5()->
-
+create_slave()->
+    io:format("db_host_status:read_all() ~p~n",[db_host_status:read_all()]),
+    Cookie=atom_to_list(erlang:get_cookie()),
+    [N1,N2,N3]=nodes(),
+    
+    {ok,N11}=rpc:call(N1,slave,start,[rpc:call(N1,net_adm,localhost,[],5*1000),
+				      "n11","-setcookie "++Cookie],5*1000),
+    {ok,N22}=rpc:call(N2,slave,start,[rpc:call(N2,net_adm,localhost,[],5*1000),
+				      "n22","-setcookie "++Cookie],5*1000),
+    {ok,N33}=rpc:call(N3,slave,start,[rpc:call(N3,net_adm,localhost,[],5*1000),
+				      "n33","-setcookie "++Cookie],5*1000),
+    
+    [pong,pong,pong]=[net_adm:ping(Node)||Node<-[N11,N22,N33]],
+    
+    D=date(),
+    [D,D,D]=[rpc:call(Node,erlang,date,[],5*1000)||Node<-[N11,N22,N33]],
+    
+    io:format("nodes() ~p~n",[nodes()]),
+    
     ok.
 
 %% --------------------------------------------------------------------

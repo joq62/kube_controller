@@ -98,7 +98,7 @@ start_host_node({HostId,Ip,SshPort,UId,Pwd,NodeName,Cookie})->
 		   ?PrintLog(ticket,"badrpc",[Reason,?FUNCTION_NAME,?MODULE,?LINE]),
 		   {error,[badrpc,Reason]};
 	       {ok,Node}->
-		   {ok,Node}
+		   {ok,HostId,Node}
 	   end,
     Result.
 
