@@ -18,9 +18,7 @@ unit_test:
 #	interface
 	erlc -I ../interfaces -o varmdo_ebin ../interfaces/*.erl;
 #	support
-	cp ../applications/support/src/*.app varmdo_ebin;
 	erlc -I ../interfaces -o varmdo_ebin ../kube_support/src/*.erl;
-	erlc -I ../interfaces -o varmdo_ebin ../applications/support/src/*.erl;
 #	controller
 	cp ../applications/controller/src/*.app varmdo_ebin;
 	erlc -I ../interfaces -o varmdo_ebin ../applications/controller/src/*.erl;

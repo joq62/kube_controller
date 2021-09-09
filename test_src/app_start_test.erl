@@ -53,15 +53,9 @@ start()->
 setup()->
 
    
-    ok=application:start(support),
-  %  ok=application:start(etcd),
-  %  ok=application:start(kubelet),
-  %  ok=application:start(cluster),
     ok=application:start(controller),
 
-  %  ok=application:start(cluster),
 
-  
     ok.
 
 

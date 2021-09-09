@@ -9,7 +9,8 @@
 -record(deployment_info,{
 			 name,
 			 vsn,
-			 pods,
+			 replicas,
+			 apps,
 			 cluster_id
 			}).
 
@@ -26,11 +27,25 @@ create_table(NodeList)->
 				 {disc_copies,NodeList}]),
     mnesia:wait_for_tables([?TABLE], 20000).
 
-create(Name,Vsn,Pods,ClusterId)->
+add_node(Node,StorageType)->
+    Result=case mnesia:change_config(extra_db_nodes, [Node]) of
+	       {ok,[Node]}->
+		   mnesia:add_table_copy(schema, node(),StorageType),
+		   mnesia:add_table_copy(?TABLE, node(), StorageType),
+		   Tables=mnesia:system_info(tables),
+		   mnesia:wait_for_tables(Tables,20*1000);
+	       Reason ->
+		   Reason
+	   end,
+    Result.
+
+%%-------------------------------------------------------------------
+create(Name,Vsn,Replicas,Apps,ClusterId)->
     Record=#?RECORD{
 		    name=Name,
 		    vsn=Vsn,
-		    pods=Pods,
+		    replicas=Replicas,
+		    apps=Apps,
 		    cluster_id=ClusterId
 		   },
     F = fun() -> mnesia:write(Record) end,
@@ -38,43 +53,47 @@ create(Name,Vsn,Pods,ClusterId)->
 
 read_all() ->
     Z=do(qlc:q([X || X <- mnesia:table(?TABLE)])),
-    [{Name,Vsn,Pods,ClusterId}||{?RECORD,Name,Vsn,Pods,ClusterId}<-Z].
+    [{Name,Vsn,Replicas,Apps,ClusterId}||{?RECORD,Name,Vsn,Replicas,Apps,ClusterId}<-Z].
 
-read(Name)->
+read(Object)->
     Z=do(qlc:q([X || X <- mnesia:table(?TABLE),		
-		     X#?RECORD.name==Name])),
+		     X#?RECORD.name==Object])),
     Result=case Z of
 	       []->
-		   {error,[eexist,Name,?FUNCTION_NAME,?MODULE,?LINE]};
+		   {error,[eexist,Object,?FUNCTION_NAME,?MODULE,?LINE]};
 	       _->
-		   [{XName,Vsn,Pods,ClusterId}||{?RECORD,XName,Vsn,Pods,ClusterId}<-Z]
+		   [{Name,Vsn,Replicas,Apps,ClusterId}||{?RECORD,Name,Vsn,Replicas,Apps,ClusterId}<-Z]
 	   end,
     Result.
 
 %%%
 key_cluster_id(WantedClusterId)->
     AllSpecs=read_all(),    
-    Result=[{Name,Vsn,Pods,ClusterId}||{Name,Vsn,Pods,ClusterId}<-AllSpecs,
-				       WantedClusterId==ClusterId],
+    Result=[{Name,Vsn,Replicas,Apps,ClusterId}||{Name,Vsn,Replicas,Apps,ClusterId}<-AllSpecs,
+						WantedClusterId==ClusterId],
     Result.
 
 %%%%
-vsn(Name)->
-    read(Name,vsn).
-pods(Name)->
-    read(Name,pods).
-cluster_id(Name)->
-    read(Name,cluster_id).
-read(Name,Key)->
-    Return=case read(Name) of
+vsn(Object)->
+    read(Object,vsn).
+replicas(Object)->
+    read(Object,replicas).
+apps(Object)->
+    read(Object,apps).
+cluster_id(Object)->
+    read(Object,cluster_id).
+read(Object,Key)->
+    Return=case read(Object) of
 	      {error,_}->
-		   {error,[eexist,Name,?FUNCTION_NAME,?MODULE,?LINE]};
-	       [{_Name,Vsn,Pods,ClusterId}] ->
+		   {error,[eexist,Object,?FUNCTION_NAME,?MODULE,?LINE]};
+	       [{_Name,Vsn,Replicas,Apps,ClusterId}] ->
 		   case  Key of
 		       vsn->
 			   Vsn;
-		       pods->
-			   Pods;
+		       replicas->
+			   Replicas;
+		       apps->
+			   Apps;
 		       cluster_id->
 			   ClusterId;
 		       Err ->
@@ -82,6 +101,8 @@ read(Name,Key)->
 		   end
 	   end,
     Return.
+
+
 
 
 do(Q) ->

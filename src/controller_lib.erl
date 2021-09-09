@@ -26,7 +26,7 @@
 %-define(KubeletNode(ClusterId,Alias,HostId),list_to_atom(ClusterId++"_"++"kubelet"++"_"++Alias++"@"++HostId)).
 %% --------------------------------------------------------------------
 -export([
-	 start_dbase/0,
+	 start_dbase/3,
 
 	 stop_node/3,
 	 load_start/3,
@@ -39,9 +39,9 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================  
-start_dbase()->
+start_dbase(ClusterId,MonitorNode,Cookie)->
     ok=dbase_lib:initial_start_mnesia(),
-    ok=dbase_lib:init_tables(),
+    ok=dbase_lib:init_tables(ClusterId,MonitorNode,Cookie),
     false=db_lock:is_open(dbase_lib:lock_id()),
     ok.
 

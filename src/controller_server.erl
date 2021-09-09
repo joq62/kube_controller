@@ -74,24 +74,21 @@ init([]) ->
 %%          {stop, Reason, Reply, State}   | (terminate/2 is called)
 %%          {stop, Reason, State}            (aterminate/2 is called)
 %% --------------------------------------------------------------------
-handle_call({new,ClusterId},_From,State) ->
-    Reply=case rpc:call(node(),controller_lib,start_dbase,[],10*1000) of
+handle_call({new,ClusterId,MonitorNode,Cookie},_From,State) ->
+    Reply=case rpc:call(node(),controller_lib,start_dbase,[ClusterId,MonitorNode,Cookie],5*10*1000) of
 	      {error,Reason}->
 		  NewState=State,
 		  {error,Reason};
 	      ok->
 		  {ok,_}=kube_logger:start(),
-		  case rpc:call(node(),cluster_lib,strive_desired_state,[],3*20*1000) of
+		  case rpc:call(node(),cluster_lib,start_host_nodes,[ClusterId],5*10*1000) of
 		      {error,StartReason}->
-			  ?PrintLog(debug,"error",[StartReason,?FUNCTION_NAME,?MODULE,?LINE]),
-			  NewState=State,
 			  {error,StartReason};
-		      HostStatus->
-			  NewState=State#state{status=running},
-			  ?PrintLog(debug,"HostStatus",[HostStatus,?FUNCTION_NAME,?MODULE,?LINE])
+		      {ok,StartList}->
+			  {ok,StartList}
+		      
 		  end
-	  end,	
-    
+	  end,
     {reply, Reply, State};
 
 handle_call({status},_From,State) ->

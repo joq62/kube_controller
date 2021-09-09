@@ -26,37 +26,13 @@
 %-define(KubeletNode(ClusterId,Alias,HostId),list_to_atom(ClusterId++"_"++"kubelet"++"_"++Alias++"@"++HostId)).
 %% --------------------------------------------------------------------
 -export([
-	 start_host_nodes/1,
+	 start_cluster/1,
 	 stop_node/3,
 	 load_start/3,
 	 stop_unload/3,
 
 	 strive_desired_state/0
 	]).
-
-
-% Deployment: 
-% {name,"math_lgh_1"}.
-% {vsn,"1.0.0"}.
-% {replicas,{3,[]}.
-% {apps,[{"mymath","1.0.0"},
-%       {"mydivi","1.0.0"}]}.	
-% {cluster_id,"lgh"}.
-
-% {application, support,
-% [{description, "SUPPORT" },
-% {vsn, "1.0.0" },
-% {modules, 
-%	  [support_app,support_sup,support,support_server]},
-% {registered,[support]},
-% {applications, [kernel,stdlib]},
-% {mod, {support_app,[]}},
-% {start_phases, []},
-% {git_path,"https://github.com/joq62/support.git"},
-% {env,[]}
-% {hosts_needed,[]}
-% ]}.
-
 
 
 %% ====================================================================
@@ -67,47 +43,10 @@
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-start_host_nodes(ClusterId)->
-    F1=fun map_start_host_node/2,
-    F2=fun host_node_start/3,
-    %HostInfo {HostId,Ip,SshPort,UId,Pwd}
-    AllHostsInfo=db_host_info:read_all(),
-    Cookie=rpc:call(node(),db_cluster_info,cookie,[],5*1000),
-    StartList=[{HostId,Ip,SshPort,UId,Pwd,
-		"host_"++ClusterId++"_"++HostId,Cookie}||{HostId,Ip,SshPort,UId,Pwd}<-AllHostsInfo],
-    StartResult=mapreduce:start(F1,F2,[],StartList),
-    Result=case [{error,Reason}||{error,Reason}<-StartResult] of
-	       []->
-		   {ok,StartResult};
-	       _->
-		   {error,StartResult}
-	   end,
-    Result.
-    
+start_cluster(ClusterId)->
     
 
-map_start_host_node(Parent,{HostId,Ip,SshPort,UId,Pwd,NodeName,Cookie})->
-    Parent!{start_host_node,start_host_node({HostId,Ip,SshPort,UId,Pwd,NodeName,Cookie})}.
 
-start_host_node({HostId,Ip,SshPort,UId,Pwd,NodeName,Cookie})->
-    Result=case vm_handler:create_vm({HostId,Ip,SshPort,UId,Pwd},NodeName,Cookie) of
-	       {error,Reason}->
-		   ?PrintLog(ticket,"error",[Reason,?FUNCTION_NAME,?MODULE,?LINE]),
-		   {error,Reason};
-	       {badrpc,Reason}->
-		   ?PrintLog(ticket,"badrpc",[Reason,?FUNCTION_NAME,?MODULE,?LINE]),
-		   {error,[badrpc,Reason]};
-	       {ok,Node}->
-		   {ok,Node}
-	   end,
-    Result.
-
-host_node_start(start_host_node,Vals,_)->
-   host_node_start(Vals,[]).
-host_node_start([],StartResult)->
-    StartResult;
-host_node_start([StartResult|T],Acc) ->
-    host_node_start(T,[StartResult|Acc]).
 
 %% --------------------------------------------------------------------
 %% Function:start/0 

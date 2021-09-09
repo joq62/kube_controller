@@ -77,9 +77,15 @@ start()->
 %% Returns: non
 %% --------------------------------------------------------------------
 new()->
+    ClusterId="lgh",
+    Cookie=atom_to_list(erlang:get_cookie()),
+    MonitorNode=node(),
     standby=controller:status(),
-    ok=controller:new("lgh"),
+    {ok,_}=controller:new(ClusterId,MonitorNode,Cookie),
     
+ 
+    
+    [_,_,_]=nodes(),
     
     ok.
 

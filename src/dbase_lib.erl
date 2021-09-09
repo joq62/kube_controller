@@ -41,7 +41,7 @@
 	 lock_id/0,
 	 check_mnesia_status/0,
 	 initial_start_mnesia/0,
-	 init_tables/0,
+	 init_tables/3,
 	 create_tables/1,
 	 init_distributed_mnesia/1,
 	 add_nodes/1
@@ -80,12 +80,12 @@ initial_start_mnesia()->
     mnesia:delete_schema([node()]),
     mnesia:start(),
     ok.
-init_tables()->
+init_tables(ClusterId,MonitorNode,Cookie)->
     ok=db_host_info:create_table(),
     ok=init_host_info(),
 
     ok=db_cluster_info:create_table(),
-    ok=init_cluster_info(),
+    ok=init_cluster_info(ClusterId,MonitorNode,Cookie),
 
     ok=db_lock:create_table(),
     {atomic,ok}=db_lock:create(?LockId,0),
@@ -186,13 +186,13 @@ init_host_info([[{host_id,HostId},{ip,Ip},{ssh_port,SshPort},{uid,UId},{pwd,Pwd}
 %% Description: List of test cases 
 %% Returns: non
 %% --------------------------------------------------------------------
-init_cluster_info()->
+init_cluster_info(ClusterId,MonitorNode,Cookie)->
     ok=db_cluster_info:create_table(), 
-    {ok,ClusterId}=application:get_env(cluster_id),
-    {ok,MonitorNodeName}=application:get_env(monitor_node),
-    {ok,HostId}=inet:gethostname(),
-    MonitorNode=list_to_atom(MonitorNodeName++"@"++HostId),
-    {ok,Cookie}=application:get_env(cookie),
+ %   {ok,ClusterId}=application:get_env(cluster_id),
+ %   {ok,MonitorNodeName}=application:get_env(monitor_node),
+%    {ok,HostId}=inet:gethostname(),
+  %  MonitorNode=list_to_atom(MonitorNodeName++"@"++HostId),
+ %   {ok,Cookie}=application:get_env(cookie),
     {atomic,ok}=db_cluster_info:create(ClusterId,MonitorNode,Cookie),
     io:format("ClusterId,MonitorNode,Cookie ~p~n",[{ClusterId,MonitorNode,Cookie,?MODULE,?LINE}]),
     ok.

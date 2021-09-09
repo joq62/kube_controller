@@ -35,6 +35,8 @@ add_node(Node,StorageType)->
 	   end,
     Result.
 
+%%----------------------------------------------------
+
 create(App,Info)->
     Record=#?RECORD{
 		    app=App,
@@ -58,6 +60,8 @@ git(Object)->
     read(Object,git_path).
 env(Object)->
     read(Object,env).
+hosts(Object)->
+    read(Object,hosts_needed).
 read(Object,Key)->
     Return=case read(Object) of
 	       []->
@@ -70,6 +74,9 @@ read(Object,Key)->
 		       env->
 			   {env,Env}=lists:keyfind(env,1,Info),
 			   Env;
+		       hosts_needed->
+			   {hosts_needed,Hosts}=lists:keyfind(hosts_needed,1,Info),
+			   Hosts;
 		       Err ->
 			   {error,['Key eexists',Err,?FUNCTION_NAME,?MODULE,?LINE]}
 		   end

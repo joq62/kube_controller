@@ -15,6 +15,7 @@
 % New final ?
  
 -export([
+	 create_vm/3,
 	 create_vm/4,
 	 delete_vm/2,
 	 load_start_app/6
@@ -68,6 +69,54 @@ load_start_app(Node,Dir,AppId,_AppVsn,GitPath,Env)->
 %% Description: List of test cases 
 %% Returns: non
 %% --------------------------------------------------------------------
+create_vm({HostId,Ip,SshPort,UId,Pwd},NodeName,Cookie)->
+   
+    ssh:start(),
+    Node=list_to_atom(NodeName++"@"++HostId),
+		  
+    true=erlang:set_cookie(Node,list_to_atom(Cookie)),
+    true=erlang:set_cookie(node(),list_to_atom(Cookie)),
+    Result=case delete_vm(Node) of
+	       {error,Reason}->
+		   {error,Reason};
+	       ok->
+		   ErlCmd="erl_call -s "++"-sname "++NodeName++" "++"-c "++Cookie,
+		   SshCmd="nohup "++ErlCmd++" &",
+		   case rpc:call(node(),my_ssh,ssh_send,[Ip,SshPort,UId,Pwd,SshCmd,2*5000],3*5000) of
+		       {badrpc,Reason}->
+			  {error,[badrpc,Reason,Ip,SshPort,UId,Pwd,NodeName,Cookie,
+				  ?FUNCTION_NAME,?MODULE,?LINE]};
+		       {error,Reason}->
+			   {error,[Reason,Ip,SshPort,UId,Pwd,NodeName,Cookie,
+				   ?FUNCTION_NAME,?MODULE,?LINE]};	
+		       ErlcCmdResult->
+			   case node_started(Node) of
+			       false->
+				   ?PrintLog(ticket,"Failed ",[Node,Ip,SshPort,UId,Pwd,NodeName,Cookie,ErlcCmdResult
+							      ,?FUNCTION_NAME,?MODULE,?LINE]),
+				   {error,['failed to start', Ip,SshPort,UId,Pwd,NodeName,Cookie,ErlcCmdResult,
+					   ?FUNCTION_NAME,?MODULE,?LINE]};
+			       true->
+				   case rpc:call(Node,file,list_dir,["."],5*1000) of
+				       {badrpc,Reason}->
+					   {error,[badrpc,Reason,Ip,SshPort,UId,Pwd,NodeName,Cookie,
+						   ?FUNCTION_NAME,?MODULE,?LINE]};
+				       {error,Reason}->
+					   {error,[Reason,Ip,SshPort,UId,Pwd,NodeName,Cookie,
+						   ?FUNCTION_NAME,?MODULE,?LINE]};
+				       {ok,Files}->
+					   DeploymentDirs=[File||File<-Files,
+								".deployment"==filename:extension(File)],
+					   [rpc:call(Node,os,cmd,["rm -rf "++DeploymentDir],5*1000)||DeploymentDir<-DeploymentDirs],
+					   timer:sleep(100),
+					   ?PrintLog(log,"Started ",[Node,HostId,NodeName,ErlcCmdResult,?FUNCTION_NAME,?MODULE,?LINE]),
+					   {ok,Node}
+				   end
+			   end
+		   end
+	   end,
+    Result.
+
 create_vm({HostId,Ip,SshPort,UId,Pwd},NodeName,Dir,Cookie)->
    
     ssh:start(),
@@ -123,6 +172,19 @@ create_vm({HostId,Ip,SshPort,UId,Pwd},NodeName,Dir,Cookie)->
     Result.
 delete_vm(Node,Dir)->
     rpc:call(Node,os,cmd,["rm -rf "++Dir],5*1000),
+    rpc:call(Node,init,stop,[],5*1000),		   
+    Result=case node_stopped(Node) of
+	       false->
+		   ?PrintLog(ticket,"Failed to stop node ",[Node,?FUNCTION_NAME,?MODULE,?LINE]),
+		   {error,["node not stopped",Node,?FUNCTION_NAME,?MODULE,?LINE]};
+	       true->
+		   ?PrintLog(log,"Stopped ",[Node,?FUNCTION_NAME,?MODULE,?LINE]),
+		   ok
+	   end,
+    Result.
+
+delete_vm(Node)->
+  %  rpc:call(Node,os,cmd,["rm -rf "++Dir],5*1000),
     rpc:call(Node,init,stop,[],5*1000),		   
     Result=case node_stopped(Node) of
 	       false->
