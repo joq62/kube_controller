@@ -66,7 +66,7 @@ read(Object,Key)->
     Return=case read(Object) of
 	       []->
 		   {error,[eexist,Object,?FUNCTION_NAME,?MODULE,?LINE]};
-	       [{Object,Info}] ->
+	       {Object,Info} ->
 		   case  Key of
 		       git_path->
 			   {git_path,GitPath}=lists:keyfind(git_path,1,Info),

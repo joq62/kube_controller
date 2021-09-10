@@ -80,7 +80,16 @@ initial_start_mnesia()->
     mnesia:delete_schema([node()]),
     mnesia:start(),
     ok.
+%% --------------------------------------------------------------------
+%% Function:start
+%% Description: List of test cases 
+%% Returns: non
+%% --------------------------------------------------------------------
 init_tables(ClusterId,MonitorNode,Cookie)->
+  
+    % deployment_spec
+    ok=db_deployment_spec:init(),
+
     ok=db_host_info:create_table(),
     ok=init_host_info(),
 
@@ -93,10 +102,15 @@ init_tables(ClusterId,MonitorNode,Cookie)->
 
   %  ok=db_app_info:create_table(),
     ok=init_app_info(),
-      
     ok=db_host_status:create_table(),
-    ok.
 
+  
+    ok.
+%% --------------------------------------------------------------------
+%% Function:start
+%% Description: List of test cases 
+%% Returns: non
+%% --------------------------------------------------------------------
 init_distributed_mnesia(Nodes)->
     StopResult=[rpc:call(Node,mnesia,stop,[],5*1000)||Node<-Nodes],
     Result=case [Error||Error<-StopResult,Error/=stopped] of
@@ -258,3 +272,9 @@ init_app_info([{ok,[{application,App,Info}]}|T],Acc)->
     R=db_app_info:create(App,Info),
     init_app_info(T,[R|Acc]).
   
+%% --------------------------------------------------------------------
+%% Function:start
+%% Description: List of test cases 
+%% Returns: non
+%% --------------------------------------------------------------------
+

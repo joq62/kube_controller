@@ -2,7 +2,7 @@
 %%% @author  : Joq Erlang
 %%% @doc: : 
 %%%
-%%%
+%%%§
 %%% Created : 
 %%% -------------------------------------------------------------------
 -module(controller_server).   
@@ -85,8 +85,13 @@ handle_call({new,ClusterId,MonitorNode,Cookie},_From,State) ->
 		      {error,StartReason}->
 			  {error,StartReason};
 		      {ok,StartList}->
-			  {ok,StartList}
-		      
+			  Start=[db_host_status:create(HostId,Node)||{ok,HostId,Node}<-StartList],
+			  case [StartR||StartR<-Start,StartR/={atomic,ok}] of
+			      []->
+				  {ok,StartList};
+			      Reason ->
+				  {error,[Reason,?FUNCTION_NAME,?MODULE,?LINE]}
+			  end
 		  end
 	  end,
     {reply, Reply, State};

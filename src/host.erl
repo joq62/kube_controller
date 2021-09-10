@@ -9,6 +9,8 @@
 
 
 -export([
+	 sort_increase_num_vm_host/0,
+
 	 running/0,
 	 missing/0,
        	 start_node/0,
@@ -144,7 +146,28 @@ status()->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
+sort_increase_num_vm_host()->
+    L1=[misc_node:vmid_hostid(Node)||Node<-nodes()],
+    L2=count(L1,[]),
+    sort(L2).
+    
 
+count([],List)->
+    List;
+count([{_,HostId}|T],Acc) ->
+    NewAcc=case lists:keyfind(HostId,1,Acc) of
+	       false->
+		   [{HostId,1}|Acc];
+	       {HostId,Num} ->
+		   lists:keyreplace(HostId, 1, Acc, {HostId,Num+1})
+	   end,
+    count(T,NewAcc).
+
+sort([{H,N}|T]) ->
+    sort([ {Hx,Nx} || {Hx,Nx} <- T, Nx < N]) ++
+    [{H,N}] ++
+    sort([ {Hx,Nx} || {Hx,Nx} <- T, Nx >= N]);
+sort([]) -> [].
 
 
     

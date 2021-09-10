@@ -25,10 +25,10 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================
-load_start_app(Node,Dir,AppId,_AppVsn,GitPath,Env)->
+load_start_app(Node,Dir,App,_AppVsn,GitPath,Env)->
+    AppId=atom_to_list(App),  
     AppDir=filename:join(Dir,AppId),
     Ebin=filename:join(AppDir,"ebin"),
-    App=list_to_atom(AppId),
     Result=case rpc:call(Node,os,cmd,["rm -rf "++AppDir],5*1000) of
 	       {badrpc,Reason}->
 		   {error,[badrpc,Reason,Node,Dir,AppId,_AppVsn,GitPath,Env,
