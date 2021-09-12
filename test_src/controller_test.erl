@@ -114,7 +114,7 @@ create_slave()->
     D=date(),
     [D,D,D]=[rpc:call(Node,erlang,date,[],5*1000)||Node<-[N11,N22,N33]],
     
-    [{_,2},{_,2},{_,2}]=host:sort_increase_num_vm_host(),
+    [{_,2},{_,2},{_,2}]=host:sort_increase_num_vm_host([]),
 
    
     {ok,N222}=rpc:call(N2,slave,start,[rpc:call(N2,net_adm,localhost,[],5*1000),
@@ -126,14 +126,17 @@ create_slave()->
     
     [pong,pong,pong]=[net_adm:ping(Node)||Node<-[N222,N333,N334]],
    
-    [{_,2},{_,3},{_,4}]=host:sort_increase_num_vm_host(),
+    [{_,2},{_,3},{_,4}]=host:sort_increase_num_vm_host([]),
+    [{_,3},{_,4}]=host:sort_increase_num_vm_host(["c0","c2"]),
+    [{_,_}]=host:sort_increase_num_vm_host(["c0"]),
+    
 
     rpc:call(N1,init,stop,[],4*1000),
     true=ensure_stopped(N1),
     
     {badrpc,nodedown}=rpc:call(N11,erlang,date,[],5*1000),
 
-    [{_,3},{_,4}]=host:sort_increase_num_vm_host(),
+    [{_,3},{_,4}]=host:sort_increase_num_vm_host([]),
       
     ok.
 ensure_stopped(N)->
@@ -196,31 +199,47 @@ deployment()->
 % vm_handler:load_start_app(Node,Dir,App,_AppVsn,GitPath,Env)
 %
 deploy_app()->
-    Deplyoment="math_lgh_1",
-    {Num,PreDefinedHosts}=db_deployment_spec:replicas(Deplyoment),
-    AppList=db_deployment_spec:apps(Deplyoment),
-    Cookie=db_deployment_spec:cluster_id(Deplyoment),
-
+    Deployment="math_lgh_1",
+    {NumReplicas,PreDefinedHosts}=db_deployment_spec:replicas(Deployment),
+    AppList=db_deployment_spec:apps(Deployment),
+    ClusterId=db_deployment_spec:cluster_id(Deployment),
+    Cookie=db_cluster_info:cookie(),
     AppInfoList=[{list_to_atom(AppId),
 		  db_app_info:git(list_to_atom(AppId)),
-		  db_app_info:env(list_to_atom(AppId)),
-		  db_app_info:hosts(list_to_atom(AppId))}||{AppId,_Vsn}<-AppList],
+		  db_app_info:env(list_to_atom(AppId))}||{AppId,_Vsn}<-AppList],
     
-    HostLoad=host:sort_increase_num_vm_host(),   
-    ok=check_availability_hosts(PreDefinedHosts,HostLoad),
+    {error,[num_replicas,0]}=host:available_hosts(PreDefinedHosts,0), 
+    [_,_,_,_,_]=host:available_hosts(PreDefinedHosts,5), 
+    Hosts=host:available_hosts(PreDefinedHosts,NumReplicas),
+    [_,_,_]=Hosts,
     
-    
+   
+    deploy(Hosts,AppInfoList,Deployment,Cookie,[]),
+    io:format("sd:get(mymath) ~p~n",[sd:get(mymath)]),
+    io:format("sd:get(mydivi) ~p~n",[sd:get(mydivi)]),
 
+    42=sd:call(mymath,mymath,add,[20,22],5*1000),
+      
+    %% 
+		      
     ok.
+deploy([],_AppInfoList,_Deployment,_Cookie,StartResults)->
+    StartResults;
+deploy([HostId|T],AppInfoList,Deployment,Cookie,Acc)->
+    Unit=microsecond,
+    Unique=integer_to_list(erlang:system_time(Unit)),
+    NodeName=Unique++"_"++Deployment,
+    Dir=NodeName++".deployment",
+    HostNode=db_host_status:node(HostId),
+    StartResult =case vm_handler:create_worker(HostNode,HostId,NodeName,Dir,Cookie) of
+		     {error,Reason}->
+			 {error,Reason};
+		     {ok,Worker}->
+			 [{vm_handler:load_start_app(Worker,Dir,App,glurk,GitPath,Env),HostId,App}||{App,GitPath,Env}<-AppInfoList]
+		 end,
+    
+    deploy(T,AppInfoList,Deployment,Cookie,[StartResult|Acc]).
 
-check_availability_hosts(PreDefinedHosts,HostLoad)->
-    Member=[lists:member(PreDefinedHost,HostLoad)||PreDefinedHost<-PreDefinedHosts],
-    case [R||R<-Member,R==false] of
-	[]->
-	    ok;
-	NotMember->
-	    {error,[NotMember]}
-    end.
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc

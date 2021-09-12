@@ -17,6 +17,7 @@
 -export([
 	 create_vm/3,
 	 create_vm/4,
+	 create_worker/5,
 	 delete_vm/2,
 	 load_start_app/6
 
@@ -29,6 +30,8 @@ load_start_app(Node,Dir,App,_AppVsn,GitPath,Env)->
     AppId=atom_to_list(App),  
     AppDir=filename:join(Dir,AppId),
     Ebin=filename:join(AppDir,"ebin"),
+
+%    io:format("AppId,AppDir,Ebin ~p~n",[{AppId,AppDir,Ebin}]),
     Result=case rpc:call(Node,os,cmd,["rm -rf "++AppDir],5*1000) of
 	       {badrpc,Reason}->
 		   {error,[badrpc,Reason,Node,Dir,AppId,_AppVsn,GitPath,Env,
@@ -53,8 +56,11 @@ load_start_app(Node,Dir,App,_AppVsn,GitPath,Env)->
 					       {badrpc,Reason}->
 						   {error,[badrpc,Reason,Node,Dir,AppId,_AppVsn,GitPath,Env,
 							   ?FUNCTION_NAME,?MODULE,?LINE]};
-					       AppStartResult->
-						   AppStartResult
+					       {error,Reason}->
+						    {error,[Reason,Node,Dir,AppId,_AppVsn,GitPath,Env,
+							   ?FUNCTION_NAME,?MODULE,?LINE]};
+					       ok->
+						   ok
 					   end
 				   end
 			   end
@@ -62,6 +68,52 @@ load_start_app(Node,Dir,App,_AppVsn,GitPath,Env)->
 	   end,
     Result.
 
+
+
+%% --------------------------------------------------------------------
+%% Function:start
+%% Description: List of test cases 
+%% Returns: non
+%% --------------------------------------------------------------------
+create_worker(HostNode,HostId,NodeName,Dir,Cookie)->
+     Worker=list_to_atom(NodeName++"@"++HostId),
+		  
+    true=erlang:set_cookie(Worker,list_to_atom(Cookie)),
+    true=erlang:set_cookie(node(),list_to_atom(Cookie)),
+    Result=case delete_vm(Worker,Dir) of
+	       {error,Reason}->
+		   {error,Reason};
+	       ok->
+		   case rpc:call(HostNode,file,make_dir,[Dir],5*1000) of
+		       {error,Reason}->
+			   {error,[Reason,?FUNCTION_NAME,?MODULE,?LINE]};
+		       {badrpc,Reason}->
+			   {error,[Reason,?FUNCTION_NAME,?MODULE,?LINE]};
+		       ok->
+			   io:format("HostId ~p~n",[HostId]),
+			   io:format("HostNode ~p~n",[HostNode]),
+			   io:format("NodeName ~p~n",[NodeName]),
+			   io:format("Cookie ~p~n",[Cookie]),
+			   
+			   Args="-setcookie "++Cookie,
+			   case rpc:call(HostNode,slave,start,[HostId,NodeName,Args],10*1000) of
+		%	   case rpc:call(HostNode,slave,start,[HostId,NodeName],3*1000) of
+			       {error,Reason}->
+				   {error,[Reason,?FUNCTION_NAME,?MODULE,?LINE]};
+			       {badrpc,Reason}->
+				   {error,[badrpc,Reason,?FUNCTION_NAME,?MODULE,?LINE]};
+			       {ok,Worker}->
+				   case net_adm:ping(Worker) of
+				       pang->
+					   {error,[pang,?FUNCTION_NAME,?MODULE,?LINE]};
+				       pong->
+					    {ok,Worker}
+				   end
+			   end
+		   end
+	   end,
+    Result.
+		   
 
 
 %% --------------------------------------------------------------------

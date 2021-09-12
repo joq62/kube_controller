@@ -9,7 +9,8 @@
 
 
 -export([
-	 sort_increase_num_vm_host/0,
+	 available_hosts/2,
+	 sort_increase_num_vm_host/1,
 
 	 running/0,
 	 missing/0,
@@ -29,6 +30,26 @@
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% -------------------------------------------------------------------
+available_hosts(PreDefinedHosts,0)->
+    {error,[num_replicas,0]};
+available_hosts(PreDefinedHosts,NumReplicas)->
+    Result=case host:sort_increase_num_vm_host(PreDefinedHosts) of
+	       []->
+		   [];
+	       SortedHostInfo->
+		   NumHosts=lists:flatlength(SortedHostInfo),
+		   Trunc=erlang:trunc(NumReplicas/NumHosts),
+		   L1=add_hosts(Trunc,SortedHostInfo,SortedHostInfo),
+		   L2=lists:sublist(L1,NumReplicas),
+		   [HostId||{HostId,_Num}<-L2]
+	   end,
+    Result.
+
+add_hosts(0,HostList,AddedList)->
+    AddedList;
+add_hosts(N,HostList,Acc) ->
+    NewAcc=lists:append(HostList,Acc),
+    add_hosts(N-1,HostList,NewAcc).
 
 %% -------------------------------------------------------------------
 %% Function:start/0 
@@ -146,11 +167,17 @@ status()->
 %% Description: Initiate the eunit tests, set upp needed processes etc
 %% Returns: non
 %% --------------------------------------------------------------------
-sort_increase_num_vm_host()->
+sort_increase_num_vm_host([])->
     L1=[misc_node:vmid_hostid(Node)||Node<-nodes()],
     L2=count(L1,[]),
-    sort(L2).
-    
+    sort(L2);
+sort_increase_num_vm_host(PreDefinedHosts)->
+    L1=[misc_node:vmid_hostid(Node)||Node<-nodes()],
+    L2=[{VmId,HostId}||{VmId,HostId}<-L1,
+		lists:member(HostId,PreDefinedHosts)],
+    L3=count(L2,[]),
+    sort(L3).
+
 
 count([],List)->
     List;
