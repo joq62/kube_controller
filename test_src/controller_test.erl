@@ -85,7 +85,7 @@ new()->
  %   [db_host_status:create(HostId,Node)||{ok,HostId,Node}<-StartList],
     
     Status=controller:hosts_status(),
-    io:format("Status ~p~n",[Status]),
+  %  io:format("Status ~p~n",[Status]),
     [_,_,_]=controller:hosts_running(),
     []=controller:hosts_missing(),
     [_,_,_]=nodes(),
@@ -101,7 +101,7 @@ create_slave()->
     io:format("db_host_status:read_all() ~p~n",[db_host_status:read_all()]),
     Cookie=atom_to_list(erlang:get_cookie()),
     [N1,N2,N3]=nodes(),
-    io:format("[N1,N2,N3] ~p~n",[{N1,N2,N3}]),
+   % io:format("[N1,N2,N3] ~p~n",[{N1,N2,N3}]),
     {ok,N11}=rpc:call(N1,slave,start,[rpc:call(N1,net_adm,localhost,[],5*1000),
 				      "n11","-setcookie "++Cookie],5*1000),
     {ok,N22}=rpc:call(N2,slave,start,[rpc:call(N2,net_adm,localhost,[],5*1000),
@@ -126,8 +126,9 @@ create_slave()->
     
     [pong,pong,pong]=[net_adm:ping(Node)||Node<-[N222,N333,N334]],
    
-    [{_,2},{_,3},{_,4}]=host:sort_increase_num_vm_host([]),
-    [{_,3},{_,4}]=host:sort_increase_num_vm_host(["c0","c2"]),
+    
+    [{_,_},{_,_},{_,_}]=host:sort_increase_num_vm_host([]),
+    [{_,_},{_,_}]=host:sort_increase_num_vm_host(["c0","c2"]),
     [{_,_}]=host:sort_increase_num_vm_host(["c0"]),
     
 
@@ -161,7 +162,7 @@ ensure_stopped(N,Num,Time,pong)->
 deployment()->
     Object1=mymath,
    
-    io:format("db_app_info:read_all() ~p~n",[db_app_info:read_all()]),
+   % io:format("db_app_info:read_all() ~p~n",[db_app_info:read_all()]),
     "https://github.com/joq62/mymath.git"=db_app_info:git(Object1),
     []=db_app_info:env(Object1),
     []=db_app_info:hosts(Object1),
@@ -172,7 +173,7 @@ deployment()->
     {3,[]}=db_deployment_spec:replicas(Object),
     [{"mymath","1.0.0"},{"mydivi","1.0.0"}]=db_deployment_spec:apps(Object),
     "lgh"=db_deployment_spec:cluster_id(Object),
-    io:format("db_deployment_spec:read_all() ~p~n",[db_deployment_spec:read_all()]),
+  %  io:format("db_deployment_spec:read_all() ~p~n",[db_deployment_spec:read_all()]),
     
     % Create wanted_state
     {NumReplicas,Hosts}=db_deployment_spec:replicas(Object),
@@ -213,19 +214,59 @@ deploy_app()->
     Hosts=host:available_hosts(PreDefinedHosts,NumReplicas),
     [_,_,_]=Hosts,
     
-   
-    deploy(Hosts,AppInfoList,Deployment,Cookie,[]),
-    io:format("sd:get(mymath) ~p~n",[sd:get(mymath)]),
-    io:format("sd:get(mydivi) ~p~n",[sd:get(mydivi)]),
+  %  {vm_handler:load_start_app(Worker,Dir,App,glurk,GitPath,Env),HostId,Worker,Dir,App}
+ 
+ %   [[{ok,"math_lgh_1","c2",'1631554704915252_math_lgh_1@c2',
+ %      "1631554704915252_math_lgh_1.deployment",mymath},
+ %     {ok,"math_lgh_1","c2",'1631554704915252_math_lgh_1@c2',
+ %      "1631554704915252_math_lgh_1.deployment",mydivi}],
+ %    [{ok,"math_lgh_1","joq62-X550CA",
+ %      '1631554703459235_math_lgh_1@joq62-X550CA',
+ %      "1631554703459235_math_lgh_1.deployment",mymath},
+ %     {ok,"math_lgh_1","joq62-X550CA",
+ %      '1631554703459235_math_lgh_1@joq62-X550CA',
+ %      "1631554703459235_math_lgh_1.deployment",mydivi}],
+ %    [{ok,"math_lgh_1","c2",'1631554700077999_math_lgh_1@c2',
+ %      "1631554700077999_math_lgh_1.deployment",mymath},
+ %     {ok,"math_lgh_1","c2",'1631554700077999_math_lgh_1@c2',
+ %      "1631554700077999_math_lgh_1.deployment",mydivi}]]
+	
+% {Result,Deployment,HostId,Worker,Dir,App}
+% 	
+    {atomic,ok}=db_deployment_status:create_table(),
+    []=db_deployment_status:read_all(),
+
+    StartResult=deploy(Hosts,AppInfoList,Deployment,Cookie,[]),
+    R=[db_deployment_status:create(Deployment,HostId,Node,Dir,App)||{ok,Deployment,HostId,Node,Dir,App}<-StartResult],
+
+  %  io:format("R ~p~n",[R]),
+
+  %  io:format("db_deployment_status:read_all() ~p~n",[db_deployment_status:read_all()]),
+    [ {Result,Deployment,HostId,Worker,Dir,App}|_]=StartResult,
+    Deployment=db_deployment_status:deployment(Worker),
+
+    [_,_,_]=db_deployment_status:get(mydivi,Worker),
+    
+   % io:format("StartResult ~p~n",[StartResult]),
+   % io:format("sd:get(mymath) ~p~n",[sd:get(mymath)]),
+   % io:format("sd:get(mydivi) ~p~n",[sd:get(mydivi)]),
 
     42=sd:call(mymath,mymath,add,[20,22],5*1000),
       
     %% 
-		      
+    db_deployment_status:delete(Deployment),
+    []=db_deployment_status:read_all(),
+   % io:format("[]=db_deployment_status:read_all() ~p~n",[db_deployment_status:read_all()]),
     ok.
+
+
 deploy([],_AppInfoList,_Deployment,_Cookie,StartResults)->
-    StartResults;
+    lists:append(StartResults);
 deploy([HostId|T],AppInfoList,Deployment,Cookie,Acc)->
+    StartResult=start_apps_on_host(HostId,AppInfoList,Deployment,Cookie),
+    deploy(T,AppInfoList,Deployment,Cookie,[StartResult|Acc]).
+
+start_apps_on_host(HostId,AppInfoList,Deployment,Cookie)->
     Unit=microsecond,
     Unique=integer_to_list(erlang:system_time(Unit)),
     NodeName=Unique++"_"++Deployment,
@@ -235,11 +276,13 @@ deploy([HostId|T],AppInfoList,Deployment,Cookie,Acc)->
 		     {error,Reason}->
 			 {error,Reason};
 		     {ok,Worker}->
-			 [{vm_handler:load_start_app(Worker,Dir,App,glurk,GitPath,Env),HostId,App}||{App,GitPath,Env}<-AppInfoList]
-		 end,
-    
-    deploy(T,AppInfoList,Deployment,Cookie,[StartResult|Acc]).
+			 [{vm_handler:load_start_app(Worker,Dir,App,glurk,GitPath,Env),Deployment,HostId,Worker,Dir,App}||{App,GitPath,Env}<-AppInfoList]
+		 end, 
+    StartResult.
 
+delete_deployment(Deployment)->
+    ok.
+    
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc

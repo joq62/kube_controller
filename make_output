@@ -1,0 +1,41 @@
+src/cluster_lib.erl:118: Warning: variable 'ClusterId' is unused
+src/cluster_lib.erl:129: Warning: variable 'DeploymentSpecName' is unused
+src/cluster_lib.erl:182: Warning: function start_cluster_nodes/3 is unused
+src/cluster_lib.erl:195: Warning: function map_create_cluster_node/2 is unused
+src/cluster_lib.erl:199: Warning: function check_cluster_node_start/3 is unused
+src/cluster_lib.erl:201: Warning: function check_cluster_node_start/2 is unused
+src/cluster_lib.erl:206: Warning: function start_cluster_node/3 is unused
+src/cluster_lib.erl:240: Warning: function start_cluster_node/4 is unused
+src/cluster_lib.erl:242: Warning: variable 'Acc' is unused
+src/cluster_lib.erl:242: Warning: variable 'App' is unused
+src/cluster_lib.erl:242: Warning: variable 'Dir' is unused
+src/cluster_lib.erl:242: Warning: variable 'Node' is unused
+src/cluster_lib.erl:242: Warning: variable 'T' is unused
+src/controller_lib.erl:54: Warning: variable 'ClusterId' is unused
+src/controller_lib.erl:65: Warning: variable 'DeploymentSpecName' is unused
+src/controller_lib.erl:118: Warning: function start_cluster_nodes/3 is unused
+src/controller_lib.erl:131: Warning: function map_create_cluster_node/2 is unused
+src/controller_lib.erl:135: Warning: function check_cluster_node_start/3 is unused
+src/controller_lib.erl:137: Warning: function check_cluster_node_start/2 is unused
+src/controller_lib.erl:142: Warning: function start_cluster_node/3 is unused
+src/controller_lib.erl:176: Warning: function start_cluster_node/4 is unused
+src/controller_lib.erl:178: Warning: variable 'Acc' is unused
+src/controller_lib.erl:178: Warning: variable 'App' is unused
+src/controller_lib.erl:178: Warning: variable 'Dir' is unused
+src/controller_lib.erl:178: Warning: variable 'Node' is unused
+src/controller_lib.erl:178: Warning: variable 'T' is unused
+src/controller_server.erl:46: Warning: function boot/0 is unused
+src/controller_server.erl:80: Warning: variable 'NewState' is unused
+src/db_app_info.erl:3: Warning: export_all flag enabled - all functions will be exported
+src/db_cluster_info.erl:3: Warning: export_all flag enabled - all functions will be exported
+src/db_deployment_spec.erl:3: Warning: export_all flag enabled - all functions will be exported
+src/db_host_info.erl:3: Warning: export_all flag enabled - all functions will be exported
+src/db_host_info.erl:69: Warning: variable 'HostId' is unused
+src/db_host_status.erl:3: Warning: export_all flag enabled - all functions will be exported
+src/db_lock.erl:3: Warning: export_all flag enabled - all functions will be exported
+src/dbase_controller_server.erl:59: Warning: function install/0 is unused
+src/dbase_lib.erl:220: Warning: function init_cluster_specs/0 is unused
+src/dbase_lib.erl:229: Warning: function init_cluster_specs/2 is unused
+src/host.erl:33: Warning: variable 'PreDefinedHosts' is unused
+src/host.erl:48: Warning: variable 'HostList' is unused
+

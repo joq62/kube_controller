@@ -90,14 +90,8 @@ create_worker(HostNode,HostId,NodeName,Dir,Cookie)->
 		       {badrpc,Reason}->
 			   {error,[Reason,?FUNCTION_NAME,?MODULE,?LINE]};
 		       ok->
-			   io:format("HostId ~p~n",[HostId]),
-			   io:format("HostNode ~p~n",[HostNode]),
-			   io:format("NodeName ~p~n",[NodeName]),
-			   io:format("Cookie ~p~n",[Cookie]),
-			   
 			   Args="-setcookie "++Cookie,
 			   case rpc:call(HostNode,slave,start,[HostId,NodeName,Args],10*1000) of
-		%	   case rpc:call(HostNode,slave,start,[HostId,NodeName],3*1000) of
 			       {error,Reason}->
 				   {error,[Reason,?FUNCTION_NAME,?MODULE,?LINE]};
 			       {badrpc,Reason}->
