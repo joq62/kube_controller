@@ -99,17 +99,38 @@ node_1()->
     [_,_,_]=host:running(),
     
 
-    StartResult=map_start_vm(),
+    g=map_start_vm(),
+    %start c0
     ok=db_host:create_table(),
-    [db_host:create(HostId,Node)||{HostId,{ok,Node}}<-StartResult],
+    HostIdC0="c0",
+    Cookie=atom_to_list(erlang:get_cookie()),
+    SshInfoC0=db_host_spec:read("c0"),
+    NodeNameC0=HostIdC0,
+    {ok,C0Node}=host:create_vm(SshInfoC0,NodeNameC0,Cookie),
+    pong=net_adm:ping(C0Node),
+ 
+    []=db_host:read_all(),
+    {atomic,ok}=db_host:create(HostIdC0,C0Node),
+    [{"c0",'c0@c0'}]=db_host:read_all(),
+  %start c2
+    {ok,C2Node}=host:create_vm(db_host_spec:read("c2"),"c2",Cookie),
+    pong=net_adm:ping(C2Node),
+ %start joq62-X550CA
+    {ok,Node3}=host:create_vm(db_host_spec:read("joq62-X550CA"),"joq62-X550CA",Cookie),
+    pong=net_adm:ping(Node3),
+ 
+     {atomic,ok}=db_host:create("joq62-X550CA",Node3),
+    [{"joq62-X550CA",'joq62-X550CA@joq62-X550CA'},{"c2",'c2@c2'},{"c0",'c0@c0'}]=db_host:read_all(),
+    
     ok.
 
 map_start_vm()->
     F1=fun start_vm/2,
     F2=fun check_start/3,
 
+    ok=db_host:create_table(),
     Cookie=atom_to_list(erlang:get_cookie()),
-    AllHostNodes=[{db_host_spec:read(HostId),HostId,Cookie}||HostId<-["c0","c2","joq62-X550CA"]],
+    AllHostNodes=[{db_host_spec:ssh_info(HostId),HostId,Cookie}||HostId<-["c0","c2","joq62-X550CA"]],
     Status=mapreduce:start(F1,F2,[],AllHostNodes), 
     Status.
 
@@ -120,7 +141,7 @@ start_vm(Parent,{SshInfo,NodeName,Cookie})->
     Parent!{start_vm,{HostId,Result}}.
 
 check_start(start_vm,Vals,_)->
-    io:format("Vals= ~p~n",[{Vals,?MODULE,?LINE}]),
+  %  io:format("Vals= ~p~n",[{Vals,?MODULE,?LINE}]),
     check_start(Vals,[]).
 
 check_start([],Status)->
@@ -146,36 +167,20 @@ pod_1()->
     2=db_pod_spec:replicas("mydivi"),
     ["c0","c2"]=db_pod_spec:host_list("mydivi"),
     
-    ActiveHostList=db_host:read_all(),
-    [_,_,_]=filtering(db_pod_spec:host_list("mymath"),ActiveHostList),
-    [{"c2",c2@c2},{"c0",c0@c0}]=filtering(db_pod_spec:host_list("mydivi"),ActiveHostList),
+    % Start mymath
+    ApplicationList=db_pod_spec:application_list("mymath"),
+    Replicas=db_pod_spec:replicas("mymath"),
+    HostList=db_pod_spec:host_list("mymath"),
     
-    % Create pod - mymath
-    Cookie=atom_to_list(erlang:get_cookie()),
     ActiveHostList=db_host:read_all(),
-    FilteredList=filtering(db_pod_spec:host_list("mydivi"),ActiveHostList),
-    Replicas=db_pod_spec:replicas("mydivi"),
-    NumHosts=lists:flatlength(FilteredList),
-    Result=if
-	       Replicas>NumHosts ->
-		   {error,[missing_hosts,"mydivi",FilteredList,Replicas,?FUNCTION_NAME,?MODULE,?LINE]};
-	       true->
-		   Args="-setcookie "++Cookie,   
-		   StartedPods=[start_pod(HostNode,HostId,"pod_"++HostId,Args)||{HostId,HostNode}<-FilteredList],
-		 %  g=StartedPods,
-		   Dir="pod.deployment",
-		   
-		   [{App,_AppVsn,GitPath,Env}]=db_pod_spec:application_list("mydivi"),
-		   [vm_handler:load_start_app(PodNode,Dir,App,_AppVsn,GitPath,Env)||{ok,PodNode}<-StartedPods]	  
-	   end,
-    g=sd:get(mydivi),						%[{mydivi,"1.0.0","https://github.com/joq62/mydivi.git",[]}]=  
+    g=filtering(HostList,ActiveHostList),
 
+% pod:create(HostNode,HostId,NodeName,Cookie
+%    {ok,N11}=rpc:call(N1,slave,start,[rpc:call(N1,net_adm,localhost,[],5*1000),
+				     % "n11","-setcookie "++Cookie],5*1000),
+    
     ok.
 
-start_pod(HostNode,HostId,NodeName,Args)->
-    {ok,Node}=rpc:call(HostNode,slave,start,[HostId,NodeName,Args],5*1000),
-    pong=net_adm:ping(Node),
-    {ok,Node}.
 
 filtering([],ActiveHostList)->
     ActiveHostList;

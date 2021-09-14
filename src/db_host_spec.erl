@@ -1,12 +1,12 @@
--module(db_host_info).
+-module(db_host_spec).
 -import(lists, [foreach/2]).
 -compile(export_all).
 
 -include_lib("stdlib/include/qlc.hrl").
 
--define(TABLE,host_info).
--define(RECORD,host_info).
--record(host_info,{
+-define(TABLE,host_spec).
+-define(RECORD,host_spec).
+-record(host_spec,{
 		   host_id,
 		   ip,
 		   ssh_port,
@@ -14,7 +14,34 @@
 		   pwd
 		  }).
 
-% Start Special 
+% Git init
+-define(HostConfigPath,"https://github.com/joq62/host_config.git").
+-define(HostConfigDirName,"host_config").
+-define(HostConfigFile,"host_config/hosts.config").
+-define(HostConfigFileName,"hosts.config").
+
+git_init()->
+    os:cmd("rm -rf "++?HostConfigDirName),
+    os:cmd("git clone "++?HostConfigPath),
+    HostConfigFile=filename:join([?HostConfigDirName,?HostConfigFileName]),
+    {ok,Info}=file:consult(HostConfigFile),
+   % io:format("~p~n",[{Debug,?MODULE,?LINE}]),
+    ok=init_host_info(Info,[]),
+    os:cmd("rm -rf "++?HostConfigDirName),
+    ok.
+init_host_info([],Result)->
+    R=[R||R<-Result,
+	  R/={atomic,ok}],
+    case R of
+	[]->
+	    ok;
+	R->
+	    {error,[R]}
+    end;
+    
+init_host_info([[{host_id,HostId},{ip,Ip},{ssh_port,SshPort},{uid,UId},{pwd,Pwd}]|T],Acc)->
+    R=create(HostId,Ip,SshPort,UId,Pwd),
+    init_host_info(T,[R|Acc]).   
 
 % End Special 
 create_table()->
@@ -66,7 +93,7 @@ read(WantedHost,Key)->
     Return=case read(WantedHost) of
 	       []->
 		   {error,[eexist,WantedHost,?FUNCTION_NAME,?MODULE,?LINE]};
-	       [{HostId,Ip,SshPort,UId,Pwd}] ->
+	       {_HostId,Ip,SshPort,UId,Pwd} ->
 		   case  Key of
 		       ssh_info->
 			   {Ip,SshPort,UId,Pwd};
@@ -83,8 +110,14 @@ read_all() ->
 read(Object)->
     Z=do(qlc:q([X || X <- mnesia:table(?TABLE),		
 		     X#?RECORD.host_id==Object])),
-    [Info]=[{HostId,Ip,SshPort,UId,Pwd}||{?RECORD,HostId,Ip,SshPort,UId,Pwd}<-Z],
-    Info.
+    Result=case Z of
+	       []->
+		  [];
+	       _->
+		   [Info]=[{HostId,Ip,SshPort,UId,Pwd}||{?RECORD,HostId,Ip,SshPort,UId,Pwd}<-Z],
+		   Info
+	   end,
+    Result.
 
 delete(Object) ->
     F = fun() -> 
@@ -95,8 +128,13 @@ delete(Object) ->
 
 
 do(Q) ->
-  F = fun() -> qlc:e(Q) end,
-  {atomic, Val} = mnesia:transaction(F),
-  Val.
+    F = fun() -> qlc:e(Q) end,
+    Result=case mnesia:transaction(F) of
+	       {atomic, Val} ->
+		   Val;
+	       {error,Reason}->
+		   {error,Reason}
+	   end,
+    Result.
 
 %%-------------------------------------------------------------------------

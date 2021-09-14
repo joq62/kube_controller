@@ -104,6 +104,8 @@ init_tables(ClusterId,MonitorNode,Cookie)->
     ok=init_app_info(),
     ok=db_host_status:create_table(),
 
+    {atomic,ok}=db_deployment_status:create_table(),
+
   
     ok.
 %% --------------------------------------------------------------------

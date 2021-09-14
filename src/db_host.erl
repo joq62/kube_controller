@@ -1,4 +1,4 @@
--module(db_host_status).
+-module(db_host).
 -import(lists, [foreach/2]).
 -compile(export_all).
 
