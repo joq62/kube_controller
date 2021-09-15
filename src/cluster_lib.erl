@@ -26,6 +26,9 @@
 %-define(KubeletNode(ClusterId,Alias,HostId),list_to_atom(ClusterId++"_"++"kubelet"++"_"++Alias++"@"++HostId)).
 %% --------------------------------------------------------------------
 -export([
+	 init_dbase/0,
+	 init_cluster/1,
+	 
 	 start_host_nodes/1,
 	 stop_node/3,
 	 load_start/3,
@@ -62,6 +65,26 @@
 %% ====================================================================
 %% External functions
 %% ====================================================================  
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+init_dbase()->
+    ok=dbase_lib:initial_start_mnesia(),
+    
+    ok.
+
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+init_cluster(Glurk)->
+    % get available hosts
+
+
+    ok.
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc

@@ -1,17 +1,43 @@
--module(db_cluster_info).
+-module(db_cluster_spec).
 -import(lists, [foreach/2]).
 -compile(export_all).
 
 -include_lib("stdlib/include/qlc.hrl").
 
--define(TABLE,cluster_info).
--define(RECORD,cluster_info).
--record(cluster_info,{
+-define(TABLE,cluster_spec).
+-define(RECORD,cluster_spec).
+-record(cluster_spec,{
 		      cluster_id,
 		      monitor_node,
 		      cookie
 		     }).
-% Start Special 
+% Git
+-define(ClusterConfigPath,"https://github.com/joq62/cluster_config.git").
+-define(ClusterConfigDirName,"cluster_config").
+-define(ClusterConfigFile,"cluster_config/cluster.config").
+-define(ClusterConfigFileName,"cluster.config").
+
+git_init()->
+    os:cmd("rm -rf "++?ClusterConfigDirName),
+    os:cmd("git clone "++?ClusterConfigPath),
+    ClusterConfigFile=filename:join([?ClusterConfigDirName,?ClusterConfigFileName]),
+    {ok,Info}=file:consult(ClusterConfigFile),
+    ok=init_cluster_specs(Info,[]),
+    os:cmd("rm -rf "++?ClusterConfigDirName),
+    ok.
+init_cluster_specs([],Result)->
+    R=[R||R<-Result,
+	  R/={atomic,ok}],
+    case R of
+	[]->
+	    ok;
+	R->
+	    {error,[R]}
+    end;
+    
+init_cluster_specs([[{cluster_name,ClusterName},{hosts,Hosts},{cookie,Cookie}]|T],Acc)->
+    R=create(ClusterName,Hosts,Cookie),
+    init_cluster_specs(T,[R|Acc]).
 
 % End Special 
 create_table()->

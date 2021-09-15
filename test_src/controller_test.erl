@@ -31,14 +31,19 @@ start()->
     ok=setup(),
     io:format("~p~n",[{"Stop setup",?MODULE,?FUNCTION_NAME,?LINE}]),
 
-    io:format("~p~n",[{"Start node_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
-    ok=node_1(),
-    io:format("~p~n",[{"Stop node_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
+    io:format("~p~n",[{"Start cluster_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
+    ok=cluster_1(),
+    io:format("~p~n",[{"Stop cluster_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
 
 
-    io:format("~p~n",[{"Start pod_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
-    ok=pod_1(),
-    io:format("~p~n",[{"Stop pod_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
+   % io:format("~p~n",[{"Start node_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
+   % ok=node_1(),
+   % io:format("~p~n",[{"Stop node_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
+
+
+   % io:format("~p~n",[{"Start pod_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
+   % ok=pod_1(),
+   % io:format("~p~n",[{"Stop pod_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
 
   %  io:format("~p~n",[{"Start node_1()",?MODULE,?FUNCTION_NAME,?LINE}]),
   %  ok=node_1(),
@@ -82,6 +87,40 @@ start()->
     io:format("------>"++atom_to_list(?MODULE)++" ENDED SUCCESSFUL ---------"),
     ok.
 
+%% --------------------------------------------------------------------
+%% Function:start/0 
+%% Description: Initiate the eunit tests, set upp needed processes etc
+%% Returns: non
+%% --------------------------------------------------------------------
+cluster_1()->
+
+    % Initial setup of the dbase
+    ok=cluster_lib:init_dbase(),
+    ok=db_cluster_spec:create_table(),
+    ok=db_cluster_spec:git_init(),
+    [{"lgh",
+      [{"c0_lgh","c0"},
+       {"c2_lgh","c2"},
+       {"asus_lgh","joq62-X550CA"}],
+      "lgh_cookie"},
+     {"varmdo",
+      [{"asus_varmdo","joq62-X550CA"}],
+      "varmdo_cookie"}]=db_cluster_spec:read_all(),
+    
+    ok=db_host_spec:create_table(),
+    ok=db_host_spec:git_init(),
+    [{"c2","192.168.0.202",22,"joq62","festum01"},
+     {"c0","192.168.0.200",22,"joq62","festum01"},
+     {"joq62-X550CA","192.168.0.100",22,"joq62","festum01"}]=db_host_spec:read_all(),
+
+    %% Check hosts and strive for desired state
+    RunningHosts=host:running(),
+    StatusHostNodes=[{host:host_node_running(HostId),HostId}||HostId<-RunningHosts],
+    PartOfCluster=[HostId||{true,HostId}<-StatusHostNodes],
+    MissingInCluster=[HostId||{false,HostId}<-StatusHostNodes],
+    [_,_]=PartOfCluster,
+    ["joq62-X550CA"]=MissingInCluster,
+    ok.
 %% --------------------------------------------------------------------
 %% Function:start/0 
 %% Description: Initiate the eunit tests, set upp needed processes etc
@@ -416,7 +455,7 @@ pass_2()->
 %% --------------------------------------------------------------------
 
 setup()->
-    ok=dbase_lib:initial_start_mnesia(),
+%    ok=dbase_lib:initial_start_mnesia(),
     ok.
 
 
